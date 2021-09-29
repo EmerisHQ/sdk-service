@@ -10,9 +10,10 @@ replace (
 require goa.design/goa/v3 v3.5.2
 
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20210929123609-6b29a2fcb57f
+	github.com/allinbits/sdk-service-meta v0.0.0-20210929141930-866100822c2d
 	github.com/cosmos/cosmos-sdk v0.42.8
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
+	github.com/stretchr/testify v1.7.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
 	google.golang.org/grpc v1.41.0
 )

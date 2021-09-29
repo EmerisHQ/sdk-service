@@ -11,9 +11,11 @@ import (
 	"sync"
 	"syscall"
 
-	sdkutilitiesapi "github.com/allinbits/sdk-service-v42"
+	"github.com/cosmos/cosmos-sdk/simapp"
+
 	log "github.com/allinbits/sdk-service-meta/gen/log"
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
+	sdkutilitiesapi "github.com/allinbits/sdk-service-v42"
 )
 
 func main() {
@@ -42,7 +44,8 @@ func main() {
 		sdkUtilitiesSvc sdkutilities.Service
 	)
 	{
-		sdkUtilitiesSvc = sdkutilitiesapi.NewSdkUtilities(logger)
+		cdc, _ := simapp.MakeCodecs()
+		sdkUtilitiesSvc = sdkutilitiesapi.NewSdkUtilities(logger, *dbgF, cdc)
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services

@@ -7,6 +7,7 @@ BASEPKG = "github.com/allinbits/sdk-service-v${MAJ_SDK_VERSION}"
 .PHONY: $(OBJS) goagenerate clean
 
 goagenerate:
+	rm -rf cmd gen
 	goa example github.com/allinbits/sdk-service-meta
 	find . -type f -name '*.go' -exec sed -i "s|github.com/allinbits/sdk-service-v${MAJ_SDK_VERSION}/gen|github.com/allinbits/sdk-service-meta/gen|g" {} +
 

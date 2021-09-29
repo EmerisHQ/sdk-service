@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/types/tx"
+
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"google.golang.org/grpc"
@@ -19,6 +22,10 @@ func QuerySupply(chainName string, port *int) (sdkutilities.Supply2, error) {
 	if err != nil {
 		return sdkutilities.Supply2{}, err
 	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
 
 	bankQuery := bank.NewQueryClient(grpcConn)
 
@@ -37,4 +44,32 @@ func QuerySupply(chainName string, port *int) (sdkutilities.Supply2, error) {
 	}
 
 	return ret, nil
+}
+
+func GetTxFromHash(chainName string, port *int, hash string, cdc codec.Marshaler) ([]byte, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+
+	grpcConn, err := grpc.Dial(
+		fmt.Sprintf("%s:%d", chainName, *port),
+		grpc.WithInsecure(),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	txClient := tx.NewServiceClient(grpcConn)
+
+	grpcRes, err := txClient.GetTx(context.Background(), &tx.GetTxRequest{Hash: hash})
+	if err != nil {
+		return nil, err
+	}
+
+	return cdc.MarshalJSON(grpcRes)
 }
