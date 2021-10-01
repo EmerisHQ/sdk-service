@@ -44,3 +44,29 @@ func (s *sdkUtilitiessrvc) Supply(
 func (s *sdkUtilitiessrvc) QueryTx(ctx context.Context, payload *sdkutilities.QueryTxPayload) (res []byte, err error) {
 	return GetTxFromHash(payload.ChainName, payload.Port, payload.Hash, s.cdc)
 }
+
+func (s *sdkUtilitiessrvc) BroadcastTx(ctx context.Context, payload *sdkutilities.BroadcastTxPayload) (res *sdkutilities.TransactionResult, err error) {
+	txHash, txErr := BroadcastTx(
+		payload.ChainName,
+		payload.Port,
+		payload.TxBytes,
+	)
+
+	if txErr != nil {
+		err = txErr
+		return
+	}
+
+	res = &sdkutilities.TransactionResult{
+		Hash: txHash,
+	}
+
+	return
+}
+
+func (s *sdkUtilitiessrvc) TxMetadata(ctx context.Context, payload *sdkutilities.TxMetadataPayload) (res *sdkutilities.TxMessagesMetadata, err error) {
+	var ret sdkutilities.TxMessagesMetadata
+	ret, err = TxMetadata(payload.TxBytes, s.cdc)
+	res = &ret
+	return
+}
