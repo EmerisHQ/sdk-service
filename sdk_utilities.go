@@ -3,6 +3,8 @@ package sdkservicev42
 import (
 	"context"
 
+	"github.com/allinbits/sdk-service-v42/tracelistener"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	log "github.com/allinbits/sdk-service-meta/gen/log"
@@ -16,14 +18,17 @@ type sdkUtilitiessrvc struct {
 	logger *log.Logger
 	debug  bool
 	cdc    codec.Marshaler
+
+	tracelistener.Processor
 }
 
 // NewSdkUtilities returns the sdk-utilities service implementation.
 func NewSdkUtilities(logger *log.Logger, debug bool, cdc codec.Marshaler) sdkutilities.Service {
 	return &sdkUtilitiessrvc{
-		logger: logger,
-		debug:  debug,
-		cdc:    cdc,
+		logger:    logger,
+		debug:     debug,
+		cdc:       cdc,
+		Processor: tracelistener.NewProcessor(cdc, logger),
 	}
 }
 
