@@ -10,7 +10,7 @@ replace (
 require goa.design/goa/v3 v3.5.2
 
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20211005154158-29e2b8b6e09c
+	github.com/allinbits/sdk-service-meta v0.0.0-20211006131905-2fae32a7a6f6
 	github.com/cosmos/cosmos-sdk v0.42.8
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/tendermint/tendermint v0.34.11 // indirect

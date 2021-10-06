@@ -59,6 +59,14 @@ github.com/allinbits/sdk-service-meta v0.0.0-20211005153841-dcc42f3eeccb h1:LraB
 github.com/allinbits/sdk-service-meta v0.0.0-20211005153841-dcc42f3eeccb/go.mod h1:G4V8izuOBdwaJY+u1GfNal9ynwfoQYO+c2EnjX4AD9c=
 github.com/allinbits/sdk-service-meta v0.0.0-20211005154158-29e2b8b6e09c h1:ICIp4Lj8iT99+ZZehQXDFv3QadcSS4LNWEfopgVNKI8=
 github.com/allinbits/sdk-service-meta v0.0.0-20211005154158-29e2b8b6e09c/go.mod h1:G4V8izuOBdwaJY+u1GfNal9ynwfoQYO+c2EnjX4AD9c=
+github.com/allinbits/sdk-service-meta v0.0.0-20211006122751-a30f58964c44 h1:sV1qAEhr+37zev9QBG1y81OHIRIgQqfpV663nwIWfLU=
+github.com/allinbits/sdk-service-meta v0.0.0-20211006122751-a30f58964c44/go.mod h1:G4V8izuOBdwaJY+u1GfNal9ynwfoQYO+c2EnjX4AD9c=
+github.com/allinbits/sdk-service-meta v0.0.0-20211006130556-ddbab4e42bdc h1:d1V8hwi0cPAVyT423jO+KtN8urJV7dIteV+k2YkTN6g=
+github.com/allinbits/sdk-service-meta v0.0.0-20211006130556-ddbab4e42bdc/go.mod h1:G4V8izuOBdwaJY+u1GfNal9ynwfoQYO+c2EnjX4AD9c=
+github.com/allinbits/sdk-service-meta v0.0.0-20211006131056-e4f9cfe97909 h1:OTWJdNkn6/MYT2osQg4drSH9OFYn++rz910JZdMY01g=
+github.com/allinbits/sdk-service-meta v0.0.0-20211006131056-e4f9cfe97909/go.mod h1:G4V8izuOBdwaJY+u1GfNal9ynwfoQYO+c2EnjX4AD9c=
+github.com/allinbits/sdk-service-meta v0.0.0-20211006131905-2fae32a7a6f6 h1:GTwZYRybIrtILMhyhENl0J7hq1pmkeYjum05a03zlos=
+github.com/allinbits/sdk-service-meta v0.0.0-20211006131905-2fae32a7a6f6/go.mod h1:G4V8izuOBdwaJY+u1GfNal9ynwfoQYO+c2EnjX4AD9c=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
 github.com/apache/thrift v0.13.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=

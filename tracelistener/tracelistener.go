@@ -39,15 +39,27 @@ func NewProcessor(
 	}
 }
 
-// Rule of thumb: for each entry that returns error, add a nil entry to the res slice.
+// Rule of thumb: for each entry that returns error, add a error string to the sdkutilities.ProcessingError Errors slice.
+// Each handling function must declare a sdkutilities.ProcessingError struct, and defer the assign assign statement of
+// a pointer to said variable to err.
+// No `return' statement must be executed on error handling, only `continue'.
 
 func (p Processor) AuthEndpoint(ctx context.Context, payload *sdkutilities.AuthPayload) (res []*sdkutilities.Auth, err error) {
-	for _, pl := range payload.Payload {
+	perrs := sdkutilities.ProcessingError{}
+	defer func() {
+		err = &perrs
+	}()
+
+	for idx, pl := range payload.Payload {
 		p.l.Debugw("auth processor entered", "key", string(pl.Key), "value", string(pl.Value))
 		if len(pl.Key) != sdk.AddrLen+1 {
 			p.l.Debugw("auth got key that isn't supposed to")
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        "cannot process key, not of auth type",
+				PayloadIndex: idx,
+			})
 			// key len must be len(account bytes) + 1
-			return nil, fmt.Errorf("cannot process key, not of auth type")
+			continue
 		}
 
 		var acc authTypes.AccountI
@@ -59,32 +71,56 @@ func (p Processor) AuthEndpoint(ctx context.Context, payload *sdkutilities.AuthP
 			// Frojdi please bless us with the new SDK ASAP.
 
 			if strings.HasPrefix(err.Error(), "no concrete type registered for type URL") {
+				perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+					Value:        "value is not AccountI",
+					PayloadIndex: idx,
+				})
 				p.l.Debugw("exiting because value isnt accountI")
-				return nil, nil
+				continue
 			}
 
-			return nil, err
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        err.Error(),
+				PayloadIndex: idx,
+			})
+			continue
 		}
 
 		if _, ok := acc.(*types.ModuleAccount); ok {
 			// ignore moduleaccounts
-			p.l.Debugw("exiting because moduleaccount")
-			return nil, fmt.Errorf("detected moduleaccount, ignoring")
+			p.l.Debugw("detected moduleaccount, ignoring")
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        "detected moduleaccount, ignoring",
+				PayloadIndex: idx,
+			})
+			continue
 		}
 
 		baseAcc, ok := acc.(*types.BaseAccount)
 		if !ok {
-			return nil, fmt.Errorf("cannot cast account to BaseAccount, type %T, account object type %T", baseAcc, acc)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Sprintf("cannot cast account to BaseAccount, type %T, account object type %T", baseAcc, acc),
+				PayloadIndex: idx,
+			})
+			continue
 		}
 
 		if err := baseAcc.Validate(); err != nil {
 			p.l.Debugw("found invalid base account", "account", baseAcc, "error", err)
-			return nil, fmt.Errorf("non compliant auth account, %w", err)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("non compliant auth account, %w", err).Error(),
+				PayloadIndex: idx,
+			})
+			continue
 		}
 
 		_, bz, err := bech32.DecodeAndConvert(baseAcc.Address)
 		if err != nil {
-			return nil, fmt.Errorf("cannot parse %s as bech32, %w", baseAcc.Address, err)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("cannot parse %s as bech32, %w", baseAcc.Address, err).Error(),
+				PayloadIndex: idx,
+			})
+			continue
 		}
 
 		hAddr := hex.EncodeToString(bz)
@@ -102,13 +138,21 @@ func (p Processor) AuthEndpoint(ctx context.Context, payload *sdkutilities.AuthP
 }
 
 func (p Processor) Bank(ctx context.Context, payload *sdkutilities.BankPayload) (res []*sdkutilities.Balance, err error) {
-	for _, pl := range payload.Payload {
+	perrs := sdkutilities.ProcessingError{}
+	defer func() {
+		err = &perrs
+	}()
+
+	for idx, pl := range payload.Payload {
 		addrBytes := pl.Key
 		pLen := len(bankTypes.BalancesPrefix)
 
 		if len(addrBytes) < pLen+20 {
-			p.l.Errorw("found bank entry which doesn't respect balance prefix bounds check, ignoring")
-			res = append(res, nil)
+			p.l.Debugw("found bank entry which doesn't respect balance prefix bounds check, ignoring")
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        "found bank entry which doesn't respect balance prefix bounds check, ignoring",
+				PayloadIndex: idx,
+			})
 			continue
 		}
 
@@ -119,11 +163,19 @@ func (p Processor) Bank(ctx context.Context, payload *sdkutilities.BankPayload) 
 		}
 
 		if err := p.cdc.UnmarshalBinaryBare(pl.Value, &coin); err != nil {
-			return nil, err
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        err.Error(),
+				PayloadIndex: idx,
+			})
+			continue
 		}
 
 		if !coin.IsValid() {
-			return nil, fmt.Errorf("invalid coin")
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        "detected invalid coin, ignoring",
+				PayloadIndex: idx,
+			})
+			continue
 		}
 
 		hAddr := hex.EncodeToString(addr)
@@ -139,9 +191,18 @@ func (p Processor) Bank(ctx context.Context, payload *sdkutilities.BankPayload) 
 }
 
 func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities.DelegationPayload) (res []*sdkutilities.Delegation, err error) {
-	for _, pl := range payload.Payload {
+	perrs := sdkutilities.ProcessingError{}
+	defer func() {
+		err = &perrs
+	}()
+
+	for idx, pl := range payload.Payload {
 		if *pl.OperationType == string(tracemeta.DeleteOp) {
 			if len(pl.Key) < 41 { // 20 bytes by address, 1 prefix = 2*20 + 1
+				perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+					Value:        "detected invalid delegation row, ignoring",
+					PayloadIndex: idx,
+				})
 				continue // found probably liquidity stuff being deleted
 			}
 
@@ -163,17 +224,29 @@ func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities
 		delegation := delegationtypes.Delegation{}
 
 		if err := p.cdc.UnmarshalBinaryBare(pl.Value, &delegation); err != nil {
-			return nil, fmt.Errorf("found delegation object, but cannot unmarshal, %w", err)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("found delegation object, but cannot unmarshal, %w", err).Error(),
+				PayloadIndex: idx,
+			})
+			continue
 		}
 
 		delegator, err := b32Hex(delegation.DelegatorAddress)
 		if err != nil {
-			return nil, fmt.Errorf("cannot convert delegator address from bech32 to hex, %w", err)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("cannot convert delegator address from bech32 to hex, %w", err).Error(),
+				PayloadIndex: idx,
+			})
+			continue
 		}
 
 		validator, err := b32Hex(delegation.ValidatorAddress)
 		if err != nil {
-			return nil, fmt.Errorf("cannot convert validator address from bech32 to hex, %w", err)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("cannot convert validator address from bech32 to hex, %w", err).Error(),
+				PayloadIndex: idx,
+			})
+			continue
 		}
 
 		delAmount := delegation.Shares.String()
@@ -191,17 +264,28 @@ func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities
 }
 
 func (p Processor) IbcChannel(ctx context.Context, payload *sdkutilities.IbcChannelPayload) (res []*sdkutilities.IBCChannel, err error) {
-	for _, pl := range payload.Payload {
+	perrs := sdkutilities.ProcessingError{}
+	defer func() {
+		err = &perrs
+	}()
+
+	for idx, pl := range payload.Payload {
 		p.l.Debugw("ibc channel key", "key", string(pl.Key), "raw value", string(pl.Value))
 		var result ibcchanneltypes.Channel
 		if err := p.cdc.UnmarshalBinaryBare(pl.Value, &result); err != nil {
-			res = append(res, nil)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        err.Error(),
+				PayloadIndex: idx,
+			})
 			continue
 		}
 
 		if err := result.ValidateBasic(); err != nil {
 			p.l.Debugw("found non-compliant channel", "channel", result, "error", err)
-			res = append(res, nil)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Sprintf("found non-compliant channel %s: %s", result, err.Error()),
+				PayloadIndex: idx,
+			})
 			continue
 		}
 
@@ -213,7 +297,10 @@ func (p Processor) IbcChannel(ctx context.Context, payload *sdkutilities.IbcChan
 
 		portID, channelID, err := host.ParseChannelPath(string(pl.Key))
 		if err != nil {
-			res = append(res, nil)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        err.Error(),
+				PayloadIndex: idx,
+			})
 			continue
 		}
 
@@ -232,17 +319,28 @@ func (p Processor) IbcChannel(ctx context.Context, payload *sdkutilities.IbcChan
 }
 
 func (p Processor) IbcClientState(ctx context.Context, payload *sdkutilities.IbcClientStatePayload) (res []*sdkutilities.IBCClientState, err error) {
-	for _, pl := range payload.Payload {
+	perrs := sdkutilities.ProcessingError{}
+	defer func() {
+		err = &perrs
+	}()
+
+	for idx, pl := range payload.Payload {
 		p.l.Debugw("ibc client key", "key", string(pl.Key), "raw value", string(pl.Value))
 		var result exported.ClientState
 		var dest *tmIBCTypes.ClientState
 		if err := p.cdc.UnmarshalInterface(pl.Value, &result); err != nil {
-			res = append(res, nil)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        err.Error(),
+				PayloadIndex: idx,
+			})
 			continue
 		}
 
 		if castRes, ok := result.(*tmIBCTypes.ClientState); !ok {
-			res = append(res, nil)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        "detected ibc client state not of tendermint type, ignoring",
+				PayloadIndex: idx,
+			})
 			continue
 		} else {
 			dest = castRes
@@ -250,7 +348,10 @@ func (p Processor) IbcClientState(ctx context.Context, payload *sdkutilities.Ibc
 
 		if err := result.Validate(); err != nil {
 			p.l.Debugw("found non-compliant ibc connection", "connection", dest, "error", err)
-			res = append(res, nil)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("find non-compliant ibc connection, %w", err).Error(),
+				PayloadIndex: idx,
+			})
 			continue
 		}
 
@@ -270,7 +371,12 @@ func (p Processor) IbcClientState(ctx context.Context, payload *sdkutilities.Ibc
 }
 
 func (p Processor) IbcConnection(ctx context.Context, payload *sdkutilities.IbcConnectionPayload) (res []*sdkutilities.IBCConnection, err error) {
-	for _, pl := range payload.Payload {
+	perrs := sdkutilities.ProcessingError{}
+	defer func() {
+		err = &perrs
+	}()
+
+	for idx, pl := range payload.Payload {
 		keyFields := strings.FieldsFunc(string(pl.Key), func(r rune) bool {
 			return r == '/'
 		})
@@ -283,13 +389,19 @@ func (p Processor) IbcConnection(ctx context.Context, payload *sdkutilities.IbcC
 			if keyFields[0] == host.KeyConnectionPrefix { // this is a ConnectionEnd
 				ce := connectionTypes.ConnectionEnd{}
 				if err := p.cdc.UnmarshalBinaryBare(pl.Value, &ce); err != nil {
-					res = append(res, nil)
+					perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+						Value:        err.Error(),
+						PayloadIndex: idx,
+					})
 					continue
 				}
 
 				if err := ce.ValidateBasic(); err != nil {
 					p.l.Debugw("found non-compliant connection end", "connection end", ce, "error", err)
-					res = append(res, nil)
+					perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+						Value:        fmt.Errorf("found non-compliant connection end, %w", err).Error(),
+						PayloadIndex: idx,
+					})
 					continue
 				}
 
@@ -311,24 +423,38 @@ func (p Processor) IbcConnection(ctx context.Context, payload *sdkutilities.IbcC
 }
 
 func (p Processor) IbcDenomTrace(ctx context.Context, payload *sdkutilities.IbcDenomTracePayload) (res []*sdkutilities.IBCDenomTrace, err error) {
-	for _, pl := range payload.Payload {
+	perrs := sdkutilities.ProcessingError{}
+	defer func() {
+		err = &perrs
+	}()
+
+	for idx, pl := range payload.Payload {
 		p.l.Debugw("beginning denom trace processor", "key", string(pl.Key), "value", string(pl.Value))
 
 		dt := transferTypes.DenomTrace{}
 		if err := p.cdc.UnmarshalBinaryBare(pl.Value, &dt); err != nil {
-			res = append(res, nil)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        err.Error(),
+				PayloadIndex: idx,
+			})
 			continue
 		}
 
 		if err := dt.Validate(); err != nil {
 			p.l.Debugw("found a denom trace that isn't ICS20 compliant", "denom trace", dt, "error", err)
-			res = append(res, nil)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("found a denom trace that isn't ICS20 compliant, %w", err).Error(),
+				PayloadIndex: idx,
+			})
 			continue
 		}
 
 		if dt.BaseDenom == "" {
 			p.l.Debugw("ignoring since it's not a denom trace")
-			res = append(res, nil)
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        "ignoring since it's not a denom trace",
+				PayloadIndex: idx,
+			})
 			continue
 		}
 
