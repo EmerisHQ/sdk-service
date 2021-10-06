@@ -47,7 +47,9 @@ func NewProcessor(
 func (p Processor) AuthEndpoint(ctx context.Context, payload *sdkutilities.AuthPayload) (res []*sdkutilities.Auth, err error) {
 	perrs := sdkutilities.ProcessingError{}
 	defer func() {
-		err = &perrs
+		if perrs.Errors != nil {
+			err = &perrs
+		}
 	}()
 
 	for idx, pl := range payload.Payload {
@@ -140,7 +142,9 @@ func (p Processor) AuthEndpoint(ctx context.Context, payload *sdkutilities.AuthP
 func (p Processor) Bank(ctx context.Context, payload *sdkutilities.BankPayload) (res []*sdkutilities.Balance, err error) {
 	perrs := sdkutilities.ProcessingError{}
 	defer func() {
-		err = &perrs
+		if perrs.Errors != nil {
+			err = &perrs
+		}
 	}()
 
 	for idx, pl := range payload.Payload {
@@ -193,7 +197,9 @@ func (p Processor) Bank(ctx context.Context, payload *sdkutilities.BankPayload) 
 func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities.DelegationPayload) (res []*sdkutilities.Delegation, err error) {
 	perrs := sdkutilities.ProcessingError{}
 	defer func() {
-		err = &perrs
+		if perrs.Errors != nil {
+			err = &perrs
+		}
 	}()
 
 	for idx, pl := range payload.Payload {
@@ -266,7 +272,9 @@ func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities
 func (p Processor) IbcChannel(ctx context.Context, payload *sdkutilities.IbcChannelPayload) (res []*sdkutilities.IBCChannel, err error) {
 	perrs := sdkutilities.ProcessingError{}
 	defer func() {
-		err = &perrs
+		if perrs.Errors != nil {
+			err = &perrs
+		}
 	}()
 
 	for idx, pl := range payload.Payload {
@@ -321,7 +329,9 @@ func (p Processor) IbcChannel(ctx context.Context, payload *sdkutilities.IbcChan
 func (p Processor) IbcClientState(ctx context.Context, payload *sdkutilities.IbcClientStatePayload) (res []*sdkutilities.IBCClientState, err error) {
 	perrs := sdkutilities.ProcessingError{}
 	defer func() {
-		err = &perrs
+		if perrs.Errors != nil {
+			err = &perrs
+		}
 	}()
 
 	for idx, pl := range payload.Payload {
@@ -373,7 +383,9 @@ func (p Processor) IbcClientState(ctx context.Context, payload *sdkutilities.Ibc
 func (p Processor) IbcConnection(ctx context.Context, payload *sdkutilities.IbcConnectionPayload) (res []*sdkutilities.IBCConnection, err error) {
 	perrs := sdkutilities.ProcessingError{}
 	defer func() {
-		err = &perrs
+		if perrs.Errors != nil {
+			err = &perrs
+		}
 	}()
 
 	for idx, pl := range payload.Payload {
@@ -425,7 +437,9 @@ func (p Processor) IbcConnection(ctx context.Context, payload *sdkutilities.IbcC
 func (p Processor) IbcDenomTrace(ctx context.Context, payload *sdkutilities.IbcDenomTracePayload) (res []*sdkutilities.IBCDenomTrace, err error) {
 	perrs := sdkutilities.ProcessingError{}
 	defer func() {
-		err = &perrs
+		if perrs.Errors != nil {
+			err = &perrs
+		}
 	}()
 
 	for idx, pl := range payload.Payload {
