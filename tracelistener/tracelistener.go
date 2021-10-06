@@ -45,7 +45,7 @@ func NewProcessor(
 // No `return' statement must be executed on error handling, only `continue'.
 
 func (p Processor) AuthEndpoint(ctx context.Context, payload *sdkutilities.AuthPayload) (res []*sdkutilities.Auth, err error) {
-	perrs := sdkutilities.ProcessingError{}
+	perrs := newPe()
 	defer func() {
 		if perrs.Errors != nil {
 			err = &perrs
@@ -130,9 +130,9 @@ func (p Processor) AuthEndpoint(ctx context.Context, payload *sdkutilities.AuthP
 		accN := acc.GetAccountNumber()
 
 		res = append(res, &sdkutilities.Auth{
-			Address:        &hAddr,
-			SequenceNumber: &seq,
-			AccountNumber:  &accN,
+			Address:        hAddr,
+			SequenceNumber: seq,
+			AccountNumber:  accN,
 		})
 	}
 
@@ -140,7 +140,7 @@ func (p Processor) AuthEndpoint(ctx context.Context, payload *sdkutilities.AuthP
 }
 
 func (p Processor) Bank(ctx context.Context, payload *sdkutilities.BankPayload) (res []*sdkutilities.Balance, err error) {
-	perrs := sdkutilities.ProcessingError{}
+	perrs := newPe()
 	defer func() {
 		if perrs.Errors != nil {
 			err = &perrs
@@ -195,7 +195,7 @@ func (p Processor) Bank(ctx context.Context, payload *sdkutilities.BankPayload) 
 }
 
 func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities.DelegationPayload) (res []*sdkutilities.Delegation, err error) {
-	perrs := sdkutilities.ProcessingError{}
+	perrs := newPe()
 	defer func() {
 		if perrs.Errors != nil {
 			err = &perrs
@@ -218,10 +218,10 @@ func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities
 
 			delType := tracemeta.TypeDeleteDelegation
 			res = append(res, &sdkutilities.Delegation{
-				Delegator: &delegatorAddr,
-				Validator: &validatorAddr,
-				Amount:    nil,
-				Type:      &delType,
+				Delegator: delegatorAddr,
+				Validator: validatorAddr,
+				Amount:    "",
+				Type:      delType,
 			})
 
 			continue
@@ -259,10 +259,10 @@ func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities
 		creatType := tracemeta.TypeCreateDelegation
 
 		res = append(res, &sdkutilities.Delegation{
-			Delegator: &delegator,
-			Validator: &validator,
-			Amount:    &delAmount,
-			Type:      &creatType,
+			Delegator: delegator,
+			Validator: validator,
+			Amount:    delAmount,
+			Type:      creatType,
 		})
 	}
 
@@ -270,7 +270,7 @@ func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities
 }
 
 func (p Processor) IbcChannel(ctx context.Context, payload *sdkutilities.IbcChannelPayload) (res []*sdkutilities.IBCChannel, err error) {
-	perrs := sdkutilities.ProcessingError{}
+	perrs := newPe()
 	defer func() {
 		if perrs.Errors != nil {
 			err = &perrs
@@ -315,11 +315,11 @@ func (p Processor) IbcChannel(ctx context.Context, payload *sdkutilities.IbcChan
 		state := int32(result.State)
 
 		res = append(res, &sdkutilities.IBCChannel{
-			ChannelID:        &channelID,
-			CounterChannelID: &result.Counterparty.ChannelId,
+			ChannelID:        channelID,
+			CounterChannelID: result.Counterparty.ChannelId,
 			Hops:             result.GetConnectionHops(),
-			Port:             &portID,
-			State:            &state,
+			Port:             portID,
+			State:            state,
 		})
 	}
 
@@ -327,7 +327,7 @@ func (p Processor) IbcChannel(ctx context.Context, payload *sdkutilities.IbcChan
 }
 
 func (p Processor) IbcClientState(ctx context.Context, payload *sdkutilities.IbcClientStatePayload) (res []*sdkutilities.IBCClientState, err error) {
-	perrs := sdkutilities.ProcessingError{}
+	perrs := newPe()
 	defer func() {
 		if perrs.Errors != nil {
 			err = &perrs
@@ -370,10 +370,10 @@ func (p Processor) IbcClientState(ctx context.Context, payload *sdkutilities.Ibc
 		tp := int64(dest.TrustingPeriod)
 
 		res = append(res, &sdkutilities.IBCClientState{
-			ChainID:        &dest.ChainId,
-			ClientID:       &clientID,
-			LatestHeight:   &dest.LatestHeight.RevisionHeight,
-			TrustingPeriod: &tp,
+			ChainID:        dest.ChainId,
+			ClientID:       clientID,
+			LatestHeight:   dest.LatestHeight.RevisionHeight,
+			TrustingPeriod: tp,
 		})
 	}
 
@@ -381,7 +381,7 @@ func (p Processor) IbcClientState(ctx context.Context, payload *sdkutilities.Ibc
 }
 
 func (p Processor) IbcConnection(ctx context.Context, payload *sdkutilities.IbcConnectionPayload) (res []*sdkutilities.IBCConnection, err error) {
-	perrs := sdkutilities.ProcessingError{}
+	perrs := newPe()
 	defer func() {
 		if perrs.Errors != nil {
 			err = &perrs
@@ -421,11 +421,11 @@ func (p Processor) IbcConnection(ctx context.Context, payload *sdkutilities.IbcC
 
 				state := ce.State.String()
 				res = append(res, &sdkutilities.IBCConnection{
-					ConnectionID:        &keyFields[1],
-					ClientID:            &ce.ClientId,
-					State:               &state,
-					CounterConnectionID: &ce.Counterparty.ConnectionId,
-					CounterClientID:     &ce.Counterparty.ClientId,
+					ConnectionID:        keyFields[1],
+					ClientID:            ce.ClientId,
+					State:               state,
+					CounterConnectionID: ce.Counterparty.ConnectionId,
+					CounterClientID:     ce.Counterparty.ClientId,
 				})
 			}
 		}
@@ -435,7 +435,7 @@ func (p Processor) IbcConnection(ctx context.Context, payload *sdkutilities.IbcC
 }
 
 func (p Processor) IbcDenomTrace(ctx context.Context, payload *sdkutilities.IbcDenomTracePayload) (res []*sdkutilities.IBCDenomTrace, err error) {
-	perrs := sdkutilities.ProcessingError{}
+	perrs := newPe()
 	defer func() {
 		if perrs.Errors != nil {
 			err = &perrs
@@ -475,9 +475,9 @@ func (p Processor) IbcDenomTrace(ctx context.Context, payload *sdkutilities.IbcD
 		hash := hex.EncodeToString(dt.Hash())
 
 		res = append(res, &sdkutilities.IBCDenomTrace{
-			Path:      &dt.Path,
-			BaseDenom: &dt.BaseDenom,
-			Hash:      &hash,
+			Path:      dt.Path,
+			BaseDenom: dt.BaseDenom,
+			Hash:      hash,
 		})
 	}
 
@@ -491,4 +491,11 @@ func b32Hex(s string) (string, error) {
 	}
 
 	return hex.EncodeToString(b), nil
+}
+
+func newPe() sdkutilities.ProcessingError {
+	n := "ProcessingError"
+	return sdkutilities.ProcessingError{
+		Name: &n,
+	}
 }
