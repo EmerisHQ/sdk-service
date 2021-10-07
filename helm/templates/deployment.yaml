@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | indent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "chart.labels" . | indent 6 }}
+  replicas: {{ .Values.replicas }}
+  template:
+    metadata:
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+      labels:
+        {{- include "chart.labels" . | indent 8 }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      containers:
+        - name: sdk-service-v42
+          image: {{ .Values.image }}
+          {{ if .Values.debug }}
+          args: ["--debug"]
+          {{ end }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+{{- include "ports.pod" . | indent 8 }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+      terminationGracePeriodSeconds: 10
