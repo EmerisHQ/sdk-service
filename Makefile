@@ -18,3 +18,6 @@ all: $(OBJS)
 
 clean:
 	rm -rf build
+
+docker:
+	docker build -t emeris/sdk-service-v42 --build-arg GIT_TOKEN=${GITHUB_TOKEN} -f Dockerfile .
