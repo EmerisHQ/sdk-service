@@ -36,7 +36,7 @@ func main() {
 		logger *log.Logger
 	)
 	{
-		logger = log.New("sdkutilitiesapi", false)
+		logger = log.New("sdkutilitiesapi", *dbgF)
 	}
 
 	// Initialize the services.
