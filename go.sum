@@ -71,6 +71,8 @@ github.com/allinbits/sdk-service-meta v0.0.0-20211006154151-63f0e5433534 h1:qh+R
 github.com/allinbits/sdk-service-meta v0.0.0-20211006154151-63f0e5433534/go.mod h1:G4V8izuOBdwaJY+u1GfNal9ynwfoQYO+c2EnjX4AD9c=
 github.com/allinbits/sdk-service-meta v0.0.0-20211006171131-1ba28e9d4da5 h1:G7hu0uY5cFiIGeJp2ntRdKYjy3vZrc/ONSKAEpgRUDA=
 github.com/allinbits/sdk-service-meta v0.0.0-20211006171131-1ba28e9d4da5/go.mod h1:G4V8izuOBdwaJY+u1GfNal9ynwfoQYO+c2EnjX4AD9c=
+github.com/allinbits/sdk-service-meta v0.0.0-20211011162256-ac21926b43c5 h1:iRtBd1SnHw+D6THzEiv47+UZQGGEva59/VAEmJvA8GU=
+github.com/allinbits/sdk-service-meta v0.0.0-20211011162256-ac21926b43c5/go.mod h1:G4V8izuOBdwaJY+u1GfNal9ynwfoQYO+c2EnjX4AD9c=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
 github.com/apache/thrift v0.13.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
