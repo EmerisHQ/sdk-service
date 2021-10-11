@@ -216,12 +216,11 @@ func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities
 			validatorAddr := hex.EncodeToString(pl.Key[21:41])
 			p.l.Debugw("new delegation delete", "delegatorAddr", delegatorAddr, "validatorAddr", validatorAddr)
 
-			delType := tracemeta.TypeDeleteDelegation
 			res = append(res, &sdkutilities.Delegation{
 				Delegator: delegatorAddr,
 				Validator: validatorAddr,
 				Amount:    "",
-				Type:      delType,
+				Type:      tracemeta.TypeDeleteDelegation,
 			})
 
 			continue
@@ -256,13 +255,12 @@ func (p Processor) DelegationEndpoint(ctx context.Context, payload *sdkutilities
 		}
 
 		delAmount := delegation.Shares.String()
-		creatType := tracemeta.TypeCreateDelegation
 
 		res = append(res, &sdkutilities.Delegation{
 			Delegator: delegator,
 			Validator: validator,
 			Amount:    delAmount,
-			Type:      creatType,
+			Type:      tracemeta.TypeCreateDelegation,
 		})
 	}
 
