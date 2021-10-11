@@ -484,6 +484,90 @@ func (p Processor) IbcDenomTrace(ctx context.Context, payload *sdkutilities.IbcD
 	return
 }
 
+func (p Processor) UnbondingDelegationEndpoint(ctx context.Context, payload *sdkutilities.UnbondingDelegationPayload) (res []*sdkutilities.UnbondingDelegation, err error) {
+	perrs := newPe()
+	defer func() {
+		if perrs.Errors != nil {
+			err = &perrs
+		}
+	}()
+
+	for idx, pl := range payload.Payload {
+		if *pl.OperationType == string(tracemeta.DeleteOp) {
+			if len(pl.Key) < 41 { // 20 bytes by address, 1 prefix = 2*20 + 1
+				perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+					Value:        "detected invalid unbonding delegation row, ignoring",
+					PayloadIndex: idx,
+				})
+				continue // found probably liquidity stuff being deleted
+			}
+
+			delegatorAddr := hex.EncodeToString(pl.Key[1:21])
+			validatorAddr := hex.EncodeToString(pl.Key[21:41])
+			p.l.Debugw("new unbonding delegation delete", "delegatorAddr", delegatorAddr, "validatorAddr", validatorAddr)
+
+			res = append(res, &sdkutilities.UnbondingDelegation{
+				Delegator: delegatorAddr,
+				Validator: validatorAddr,
+				Entries:   nil,
+				Type:      tracemeta.TypeDeleteUnbondingDelegation,
+			})
+
+			continue
+		}
+
+		delegation := delegationtypes.UnbondingDelegation{}
+
+		if err := p.cdc.UnmarshalBinaryBare(pl.Value, &delegation); err != nil {
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("found delegation object, but cannot unmarshal, %w", err).Error(),
+				PayloadIndex: idx,
+			})
+			continue
+		}
+
+		delegator, err := b32Hex(delegation.DelegatorAddress)
+		if err != nil {
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("cannot convert delegator address from bech32 to hex, %w", err).Error(),
+				PayloadIndex: idx,
+			})
+			continue
+		}
+
+		validator, err := b32Hex(delegation.ValidatorAddress)
+		if err != nil {
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("cannot convert validator address from bech32 to hex, %w", err).Error(),
+				PayloadIndex: idx,
+			})
+			continue
+		}
+
+		var entries []*sdkutilities.UnbondingDelegationEntry
+
+		for _, re := range delegation.Entries {
+			nre := &sdkutilities.UnbondingDelegationEntry{
+				Balance:        re.Balance.String(),
+				InitialBalance: re.InitialBalance.String(),
+				CreationHeight: re.CreationHeight,
+				CompletionTime: re.CompletionTime.Unix(),
+			}
+
+			entries = append(entries, nre)
+		}
+
+		res = append(res, &sdkutilities.UnbondingDelegation{
+			Delegator: delegator,
+			Validator: validator,
+			Entries:   entries,
+			Type:      tracemeta.TypeCreateUnbondingDelegation,
+		})
+	}
+
+	return
+}
+
 func b32Hex(s string) (string, error) {
 	_, b, err := bech32.DecodeAndConvert(s)
 	if err != nil {
