@@ -22,6 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/ibc/core/exported"
 	tmIBCTypes "github.com/cosmos/cosmos-sdk/x/ibc/light-clients/07-tendermint/types"
 	delegationtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 type Processor struct {
@@ -560,6 +561,82 @@ func (p Processor) UnbondingDelegationEndpoint(ctx context.Context, payload *sdk
 			Validator: validator,
 			Entries:   entries,
 			Type:      tracemeta.TypeCreateUnbondingDelegation,
+		})
+	}
+
+	return
+}
+
+func (p Processor) ValidatorEndpoint(ctx context.Context, payload *sdkutilities.ValidatorPayload) (res []*sdkutilities.Validator, err error) {
+	perrs := newPe()
+	defer func() {
+		if perrs.Errors != nil {
+			err = &perrs
+		}
+	}()
+
+	for idx, pl := range payload.Payload {
+		if *pl.OperationType == string(tracemeta.DeleteOp) {
+			if len(pl.Key) < 21 {
+				perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+					Value:        "detected invalid validator row, ignoring",
+					PayloadIndex: idx,
+				})
+				continue
+			}
+
+			operatorAddress := hex.EncodeToString(pl.Key[1:21])
+			p.l.Debugw("new validator delete", "operator address", operatorAddress)
+
+			res = append(res, &sdkutilities.Validator{
+				OperatorAddress: operatorAddress,
+				Type:            tracemeta.TypeDeleteValidator,
+			})
+
+			continue
+		}
+
+		v := stakingtypes.Validator{}
+
+		if err := p.cdc.UnmarshalBinaryBare(pl.Value, &v); err != nil {
+			perrs.Errors = append(perrs.Errors, &sdkutilities.ErrorObject{
+				Value:        fmt.Errorf("cannot unmarshal validators bytes into object, %w", err).Error(),
+				PayloadIndex: idx,
+			})
+
+			continue
+		}
+
+		val := string(v.ConsensusPubkey.GetValue())
+
+		k := hex.EncodeToString(pl.Key)
+
+		p.l.Debugw("new validator write",
+			"operator_address", v.OperatorAddress,
+			"cons pub key", val,
+			"key", k,
+		)
+
+		res = append(res, &sdkutilities.Validator{
+			OperatorAddress:      v.OperatorAddress,
+			ConsensusPubKeyType:  v.ConsensusPubkey.GetTypeUrl(),
+			ConsensusPubKeyValue: v.ConsensusPubkey.Value,
+			Jailed:               v.Jailed,
+			Status:               int32(v.Status),
+			Tokens:               v.Tokens.String(),
+			DelegatorShares:      v.DelegatorShares.String(),
+			Moniker:              v.Description.Moniker,
+			Identity:             v.Description.Identity,
+			Website:              v.Description.Website,
+			SecurityContact:      v.Description.SecurityContact,
+			Details:              v.Description.Details,
+			UnbondingHeight:      v.UnbondingHeight,
+			UnbondingTime:        v.UnbondingTime.Unix(),
+			CommissionRate:       v.Commission.CommissionRates.Rate.String(),
+			MaxRate:              v.Commission.CommissionRates.MaxRate.String(),
+			MaxChangeRate:        v.Commission.CommissionRates.MaxChangeRate.String(),
+			UpdateTime:           v.Commission.UpdateTime.String(),
+			MinSelfDelegation:    v.MinSelfDelegation.String(),
 		})
 	}
 
