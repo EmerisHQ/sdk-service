@@ -637,6 +637,7 @@ func (p Processor) ValidatorEndpoint(ctx context.Context, payload *sdkutilities.
 			MaxChangeRate:        v.Commission.CommissionRates.MaxChangeRate.String(),
 			UpdateTime:           v.Commission.UpdateTime.String(),
 			MinSelfDelegation:    v.MinSelfDelegation.String(),
+			Type:                 tracemeta.TypeCreateValidator,
 		})
 	}
 
