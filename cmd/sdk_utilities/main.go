@@ -11,14 +11,18 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
-
+	sdkutilitiesapi "github.com/allinbits/sdk-service"
 	log "github.com/allinbits/sdk-service-meta/gen/log"
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
-	sdkutilitiesapi "github.com/allinbits/sdk-service-v42"
 )
 
+var SupportedSDKVersion = ""
+
 func main() {
+	if SupportedSDKVersion == "" {
+		panic("missing sdk version at compile time, panic!")
+	}
+
 	// Define command line flags, add any other flag required to configure the
 	// service.
 	var (
@@ -36,7 +40,7 @@ func main() {
 		logger *log.Logger
 	)
 	{
-		logger = log.New("sdkutilitiesapi", *dbgF)
+		logger = log.New("sdkutilitiesapi", false)
 	}
 
 	// Initialize the services.
@@ -44,8 +48,7 @@ func main() {
 		sdkUtilitiesSvc sdkutilities.Service
 	)
 	{
-		cdc, _ := simapp.MakeCodecs()
-		sdkUtilitiesSvc = sdkutilitiesapi.NewSdkUtilities(logger, *dbgF, cdc)
+		sdkUtilitiesSvc = sdkutilitiesapi.NewSdkUtilities(logger, *dbgF)
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services
