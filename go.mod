@@ -1,8 +1,9 @@
-module github.com/allinbits/sdk-service-v42
+module github.com/allinbits/sdk-service
 
 go 1.16
 
 replace (
+	github.com/allinbits/sdk-service-meta => /home/gsora/Tendermint/navigator/sdk-service-meta
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
@@ -10,10 +11,14 @@ replace (
 require goa.design/goa/v3 v3.5.2
 
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20211012102821-f08b179e69f8
-	github.com/cosmos/cosmos-sdk v0.42.8
+	github.com/99designs/keyring v1.1.6 // indirect
+	github.com/allinbits/sdk-service-meta v0.0.0-20211116143837-b8e7231ffc18
+	github.com/cosmos/cosmos-sdk v0.44.3
+	github.com/cosmos/gaia/v6 v6.0.0-rc3
+	github.com/cosmos/ibc-go v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
-	github.com/tendermint/tendermint v0.34.11
-	go.uber.org/zap v1.16.0
+	github.com/tendermint/liquidity v1.4.2
+	github.com/tendermint/tendermint v0.34.14
+	go.uber.org/zap v1.19.1
 	google.golang.org/grpc v1.41.0
 )
