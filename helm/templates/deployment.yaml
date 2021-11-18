@@ -21,7 +21,7 @@ spec:
       nodeSelector:
 {{ toYaml .Values.nodeSelector | indent 8 }}
       containers:
-        - name: sdk-service-v42
+        - name: sdk-service
           image: {{ .Values.image }}
           {{ if .Values.debug }}
           args: ["--debug"]
