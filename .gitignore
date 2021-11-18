@@ -1,2 +1,3 @@
 .idea
 build/
+.selected_sdk_version
