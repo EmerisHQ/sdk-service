@@ -1,14 +1,9 @@
-package sdkservicev42
+package sdkservice
 
 import (
 	"context"
 
-	"github.com/allinbits/sdk-service-v42/tracelistener"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-
 	log "github.com/allinbits/sdk-service-meta/gen/log"
-
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 )
 
@@ -17,18 +12,13 @@ import (
 type sdkUtilitiessrvc struct {
 	logger *log.Logger
 	debug  bool
-	cdc    codec.Marshaler
-
-	tracelistener.Processor
 }
 
 // NewSdkUtilities returns the sdk-utilities service implementation.
-func NewSdkUtilities(logger *log.Logger, debug bool, cdc codec.Marshaler) sdkutilities.Service {
+func NewSdkUtilities(logger *log.Logger, debug bool) sdkutilities.Service {
 	return &sdkUtilitiessrvc{
-		logger:    logger,
-		debug:     debug,
-		cdc:       cdc,
-		Processor: tracelistener.NewProcessor(cdc, logger),
+		logger: logger,
+		debug:  debug,
 	}
 }
 
@@ -47,7 +37,7 @@ func (s *sdkUtilitiessrvc) Supply(
 }
 
 func (s *sdkUtilitiessrvc) QueryTx(ctx context.Context, payload *sdkutilities.QueryTxPayload) (res []byte, err error) {
-	return GetTxFromHash(payload.ChainName, payload.Port, payload.Hash, s.cdc)
+	return GetTxFromHash(payload.ChainName, payload.Port, payload.Hash)
 }
 
 func (s *sdkUtilitiessrvc) BroadcastTx(ctx context.Context, payload *sdkutilities.BroadcastTxPayload) (res *sdkutilities.TransactionResult, err error) {
@@ -71,7 +61,42 @@ func (s *sdkUtilitiessrvc) BroadcastTx(ctx context.Context, payload *sdkutilitie
 
 func (s *sdkUtilitiessrvc) TxMetadata(ctx context.Context, payload *sdkutilities.TxMetadataPayload) (res *sdkutilities.TxMessagesMetadata, err error) {
 	var ret sdkutilities.TxMessagesMetadata
-	ret, err = TxMetadata(payload.TxBytes, s.cdc)
+	ret, err = TxMetadata(payload.TxBytes)
 	res = &ret
 	return
+}
+
+func (s *sdkUtilitiessrvc) Block(ctx context.Context, payload *sdkutilities.BlockPayload) (res *sdkutilities.BlockData, err error) {
+	ret, err := Block(payload.ChainName, payload.Port, payload.Height)
+	return &ret, err
+}
+
+// LiquidityParams implements liquidityParams.
+func (s *sdkUtilitiessrvc) LiquidityParams(ctx context.Context, payload *sdkutilities.LiquidityParamsPayload) (res *sdkutilities.LiquidityParams2, err error) {
+	ret, err := LiquidityParams(payload.ChainName, payload.Port)
+	return &ret, err
+}
+
+// LiquidityPools implements liquidityPools.
+func (s *sdkUtilitiessrvc) LiquidityPools(ctx context.Context, payload *sdkutilities.LiquidityPoolsPayload) (res *sdkutilities.LiquidityPools2, err error) {
+	ret, err := LiquidityPools(payload.ChainName, payload.Port)
+	return &ret, err
+}
+
+// MintInflation implements mintInflation.
+func (s *sdkUtilitiessrvc) MintInflation(ctx context.Context, payload *sdkutilities.MintInflationPayload) (res *sdkutilities.MintInflation2, err error) {
+	ret, err := MintInflation(payload.ChainName, payload.Port)
+	return &ret, err
+}
+
+// MintParams implements mintParams.
+func (s *sdkUtilitiessrvc) MintParams(ctx context.Context, payload *sdkutilities.MintParamsPayload) (res *sdkutilities.MintParams2, err error) {
+	ret, err := MintParams(payload.ChainName, payload.Port)
+	return &ret, err
+}
+
+// MintAnnualProvision implements mintAnnualProvision.
+func (s *sdkUtilitiessrvc) MintAnnualProvision(ctx context.Context, payload *sdkutilities.MintAnnualProvisionPayload) (res *sdkutilities.MintAnnualProvision2, err error) {
+	ret, err := MintAnnualProvision(payload.ChainName, payload.Port)
+	return &ret, err
 }
