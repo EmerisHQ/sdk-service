@@ -17,12 +17,12 @@ goagenerate:
 	find . -type f -name '*.go' -exec sed -i "s|github.com/allinbits/sdk-service/gen|github.com/allinbits/sdk-service-meta/gen|g" {} +
 
 $(BUILD_VERSIONS):
-	go build -o build/sdk_utilities \
+	go build -o build/sdk_utilities -v \
 	 -tags $(shell echo $@ | sed 's/build-/sdk_/g') \
 	 -ldflags "-X main.SupportedSDKVersion=$(shell echo $@ | sed 's/build-//g')" \
 	 ${BASEPKG}/cmd/sdk_utilities
 	
-	go build -o build/sdk_utilities-cli \
+	go build -o build/sdk_utilities-cli -v \
 	 -tags $(shell echo $@ | sed 's/build-/sdk_/g') \
 	 -ldflags "-X main.SupportedSDKVersion=$(shell echo $@ | sed 's/build-//g')" \
 	 ${BASEPKG}/cmd/sdk_utilities-cli
@@ -49,3 +49,9 @@ available-go-tags:
 
 selected-sdk-version:
 	@cat .selected_sdk_version
+
+clean-gomod:
+	@for i in $(shell jq -r 'map(.version |= "\(.)")[].version' ${TARGETS}) ; do \
+		echo "Clearing SDK $$i imports" ; \
+		./contrib/remove-old-imports.sh $$i ${TARGETS}; \
+	done
