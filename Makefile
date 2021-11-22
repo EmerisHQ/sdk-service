@@ -55,3 +55,5 @@ clean-gomod:
 		echo "Clearing SDK $$i imports" ; \
 		./contrib/remove-old-imports.sh $$i ${TARGETS}; \
 	done
+versions-json:
+	@jq -c '[.[].version]' ${TARGETS}
