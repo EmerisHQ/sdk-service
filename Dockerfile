@@ -11,7 +11,7 @@ RUN apt update -y && apt install jq -y
 WORKDIR /app
 COPY go.mod go.sum* ./
 COPY . .
-RUN make clean-gomod
+RUN make clean
 RUN CGO_ENABLED=0 GOPROXY=direct make setup-${SDK_TARGET}
 RUN CGO_ENABLED=0 GOPROXY=direct make build-${SDK_TARGET}
 

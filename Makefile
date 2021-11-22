@@ -28,6 +28,8 @@ $(BUILD_VERSIONS):
 	 ${BASEPKG}/cmd/sdk_utilities-cli
 clean:
 	rm -rf build
+	rm go.mod go.sum
+	cp mods/go.mod.bare ./go.mod
 
 docker:
 	docker build -t emeris/sdk-service --build-arg GIT_TOKEN=${GITHUB_TOKEN} -f Dockerfile .
@@ -40,8 +42,12 @@ $(SETUP_VERSIONS):
 
 	echo $(shell echo $@ | sed 's/setup-//g') > .selected_sdk_version
 	
-	./contrib/set-replaces.sh $(shell echo $@ | sed 's/setup-//g') ${TARGETS}
-	./contrib/set-imports.sh $(shell echo $@ | sed 's/setup-//g') ${TARGETS}
+	cp mods/go.mod.$(shell echo $@ | sed 's/setup-//g') ./go.mod
+	cp mods/go.sum.$(shell echo $@ | sed 's/setup-//g') ./go.sum
+
+	#go get -tags $(shell echo $@ | sed 's/setup-/sdk_/g') | true
+	# ./contrib/set-replaces.sh $(shell echo $@ | sed 's/setup-//g') ${TARGETS}
+	# ./contrib/set-imports.sh $(shell echo $@ | sed 's/setup-//g') ${TARGETS}
 
 available-go-tags:
 	@echo Available Go \`//go:build\' tags:
