@@ -28,7 +28,7 @@ $(BUILD_VERSIONS):
 	 ${BASEPKG}/cmd/sdk_utilities-cli
 clean:
 	rm -rf build
-	rm go.mod go.sum
+	rm go.mod go.sum | true
 	cp mods/go.mod.bare ./go.mod
 
 docker:
