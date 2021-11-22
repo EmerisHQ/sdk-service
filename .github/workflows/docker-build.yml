@@ -8,16 +8,39 @@ on:
     paths:
       - Dockerfile
       - cmd/**
-      - tracelistener/**
       - go.mod
       - go.sum
-      - grpc_cosmos_sdk.go
+      - grpc_cosmos_sdk_*.go
       - sdk_utilities.go
       - helm/**
 
 jobs:
-  sdk-service-42:
-    runs-on: self-hosted
+  prepare-version-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(jq [.[].version] sdk_targets.json)"
+
+    # here, we save the result of this 1st phase to the "outputs"
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+  use-matrix:
+    needs: prepare-version-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      # ↓ the real magic happens here - create dynamic matrix from the json
+      matrix:
+        package: ${{ fromJson(needs.prepare-version-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        run: echo ${{ matrix.package }}
+
+  sdk-service:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
