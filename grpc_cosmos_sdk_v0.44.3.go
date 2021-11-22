@@ -6,12 +6,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	gaia "github.com/cosmos/gaia/v6/app"
 	"sync"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/tendermint/tendermint/abci/types"
 
-	ibcTypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
+	ibcTypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,8 +23,6 @@ import (
 
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
-
-	gaia "github.com/cosmos/gaia/v6/app"
 	"google.golang.org/grpc"
 )
 
