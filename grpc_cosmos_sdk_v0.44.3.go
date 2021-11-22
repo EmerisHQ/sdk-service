@@ -18,7 +18,7 @@ import (
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
-	liquidity "github.com/tendermint/liquidity/x/liquidity/types"
+	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
