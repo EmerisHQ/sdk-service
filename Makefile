@@ -56,4 +56,4 @@ clean-gomod:
 		./contrib/remove-old-imports.sh $$i ${TARGETS}; \
 	done
 versions-json:
-	@jq -c '{"include":[.[].version]}' ${TARGETS}
+	@jq -r -c "map( { "version": .version } )" ${TARGETS}

@@ -19,14 +19,12 @@ jobs:
   setup-matrix:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Setup matrix combinations
         id: setup-matrix-combinations
         run: |
-          MATRIX_PARAMS_COMBINATIONS='
-            {"version":"v0.42.10"},
-            {"version":"v0.44.2"}
-          '
-          echo ::set-output name=matrix-combinations::{\"include\":[$MATRIX_PARAMS_COMBINATIONS]}
+          MATRIX_PARAMS_COMBINATIONS="$(make versions-json)"
+          echo ::set-output name=matrix-combinations::{\"include\":$MATRIX_PARAMS_COMBINATIONS}
     outputs:
       matrix-combinations: ${{ steps.setup-matrix-combinations.outputs.matrix-combinations }}
 
