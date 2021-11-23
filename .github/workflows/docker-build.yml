@@ -31,7 +31,6 @@ jobs:
   sdk-service:
     runs-on: self-hosted
     needs: setup-matrix
-    concurrency: ci-${{ github.ref }}
     strategy:
       matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix-combinations) }}
     steps:
