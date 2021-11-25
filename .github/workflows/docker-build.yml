@@ -58,7 +58,7 @@ jobs:
           push: true
           context: .
           file: Dockerfile
-          tags: gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.version }}:${{ steps.get_version.outputs.version-without-v }},gcr.io/tendermint-dev/emeris-sdk-service:${{ github.sha }}
+          tags: gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.version }}:${{ steps.get_version.outputs.version-without-v }},gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.version }}:${{ github.sha }}
           build-args: |
             GIT_TOKEN=${{ secrets.TENDERBOT_GIT_TOKEN }}
             SDK_TARGET=${{ matrix.version }}
