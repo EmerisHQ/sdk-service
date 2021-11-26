@@ -55,6 +55,14 @@ jobs:
         id: get_version
         uses: battila7/get-version-action@v2
 
+      - name: Setup version number to be used in repository_dispatch
+        run: |
+          echo "DISPATCH_SDK_VERSION=$(echo ${{ matrix.version }} | sed 's|\.|-|g')" >> $GITHUB_ENV
+
+      - name: Show dispatch SDK version
+        run: |
+          echo Dispatch SDK version: $DISPATCH_SDK_VERSION
+
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
@@ -65,10 +73,6 @@ jobs:
           build-args: |
             GIT_TOKEN=${{ secrets.TENDERBOT_GIT_TOKEN }}
             SDK_TARGET=${{ matrix.version }}
-
-      - name: Setup version number to be used in repository_dispatch
-        run: |
-          echo "DISPATCH_SDK_VERSION=$(echo ${{ matrix.version }} | sed 's|\.|-|g')" >> $GITHUB_ENV
 
       - name: Call repository_dispatch on demeris-backend
         uses: peter-evans/repository-dispatch@v1
