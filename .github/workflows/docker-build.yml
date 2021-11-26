@@ -64,7 +64,7 @@ jobs:
           tags: gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.version }}:${{ steps.get_version.outputs.version-without-v }},gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.version }}:${{ github.sha }}
           build-args: |
             GIT_TOKEN=${{ secrets.TENDERBOT_GIT_TOKEN }}
-            SDK_TARGET=$(${{ matrix.version }} | sed "s|-|.|g")
+            SDK_TARGET=${{ matrix.version }}
 
       - name: Call repository_dispatch on demeris-backend
         uses: peter-evans/repository-dispatch@v1

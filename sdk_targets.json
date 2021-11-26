@@ -1,6 +1,6 @@
 [
 	{
-		"version": "v0.42.10",
+		"version": "v0-42-10",
 		"imports": [
 			"github.com/cosmos/cosmos-sdk@v0.42.10",
 			"github.com/gravity-devs/liquidity@v1.2.9",
@@ -18,7 +18,7 @@
 		]
 	},
 	{
-		"version": "v0.44.3",
+		"version": "v0-44-3",
 		"imports": [
 			"github.com/cosmos/cosmos-sdk@v0.44.3",
 			"github.com/cosmos/ibc-go@v1.2.0",

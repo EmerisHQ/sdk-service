@@ -1,4 +1,4 @@
-//go:build sdk_v0.42.10
+//go:build sdk_v0_42_10
 
 package sdkservice
 
