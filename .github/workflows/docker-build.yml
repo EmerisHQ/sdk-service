@@ -63,10 +63,14 @@ jobs:
             GIT_TOKEN=${{ secrets.TENDERBOT_GIT_TOKEN }}
             SDK_TARGET=${{ matrix.version }}
 
+      - name: Setup version number to be used in repository_dispatch
+        run: |
+          echo "DISPATCH_SDK_VERSION=$(echo ${{ matrix.version }} | sed 's|\.|-|g')" >> $GITHUB_ENV
+
       - name: Call repository_dispatch on demeris-backend
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.TENDERBOT_GIT_TOKEN }}
           repository: allinbits/demeris-backend
           event-type: dev-push-sdk-service-${{ matrix.version }}
-          client-payload: '{"repo_name":"sdk-service","branch_name":"main","image_name":"emeris-sdk-service-${{ matrix.version }}","image_sha":"${{ github.sha }}","service_name":"sdk-service-${{ matrix.version }}"}'
+          client-payload: '{"repo_name":"sdk-service","branch_name":"main","image_name":"emeris-sdk-service-${{ matrix.version }}","image_sha":"${{ github.sha }}","service_name":"sdk-service-$DISPATCH_SDK_VERSION"}'
