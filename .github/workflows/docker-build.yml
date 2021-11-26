@@ -1,26 +1,45 @@
-name: Build docker images
+name: Build and push Docker images on dev env
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches:
       - main
     paths:
       - Dockerfile
       - cmd/**
-      - tracelistener/**
       - go.mod
       - go.sum
-      - grpc_cosmos_sdk.go
+      - grpc_cosmos_sdk_*.go
       - sdk_utilities.go
       - helm/**
 
 jobs:
-  sdk-service-42:
+  setup-matrix:
     runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup matrix combinations
+        id: setup-matrix-combinations
+        run: |
+          MATRIX_PARAMS_COMBINATIONS="$(make versions-json)"
+          echo ::set-output name=matrix-combinations::{\"include\":$MATRIX_PARAMS_COMBINATIONS}
+    outputs:
+      matrix-combinations: ${{ steps.setup-matrix-combinations.outputs.matrix-combinations }}
+
+  sdk-service:
+    runs-on: self-hosted
+    needs: setup-matrix
+    strategy:
+      max-parallel: 1
+      matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix-combinations) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -42,6 +61,15 @@ jobs:
           push: true
           context: .
           file: Dockerfile
-          tags: gcr.io/tendermint-dev/emeris-sdk-service:${{ steps.get_version.outputs.version-without-v }},gcr.io/tendermint-dev/emeris-sdk-service:${{ github.sha }}
+          tags: gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.version }}:${{ steps.get_version.outputs.version-without-v }},gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.version }}:${{ github.sha }}
           build-args: |
             GIT_TOKEN=${{ secrets.TENDERBOT_GIT_TOKEN }}
+            SDK_TARGET=${{ matrix.version }}
+
+      - name: Call repository_dispatch on demeris-backend
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.TENDERBOT_GIT_TOKEN }}
+          repository: allinbits/demeris-backend
+          event-type: dev-push-sdk-service-${{ matrix.version }}
+          client-payload: '{"repo_name":"sdk-service","branch_name":"main","image_name":"emeris-sdk-service-${{ matrix.version }}","image_sha":"${{ github.sha }}","service_name":"sdk-service-${{ matrix.version }}"}'

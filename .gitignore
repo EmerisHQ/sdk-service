@@ -1,3 +1,5 @@
 .idea
 build/
 .selected_sdk_version
+go.mod
+go.sum

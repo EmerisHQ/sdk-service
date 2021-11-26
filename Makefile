@@ -17,17 +17,19 @@ goagenerate:
 	find . -type f -name '*.go' -exec sed -i "s|github.com/allinbits/sdk-service/gen|github.com/allinbits/sdk-service-meta/gen|g" {} +
 
 $(BUILD_VERSIONS):
-	go build -o build/sdk_utilities \
-	 -tags $(shell echo $@ | sed 's/build-/sdk_/g') \
-	 -ldflags "-X main.SupportedSDKVersion=$(shell echo $@ | sed 's/build-//g')" \
+	go build -o build/sdk_utilities -v \
+	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g') \
+	 -ldflags "-X main.SupportedSDKVersion=$(shell echo $@ | sed -e 's/build-//g' -e 's/-/_/g')" \
 	 ${BASEPKG}/cmd/sdk_utilities
 	
-	go build -o build/sdk_utilities-cli \
-	 -tags $(shell echo $@ | sed 's/build-/sdk_/g') \
-	 -ldflags "-X main.SupportedSDKVersion=$(shell echo $@ | sed 's/build-//g')" \
+	go build -o build/sdk_utilities-cli -v \
+	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g') \
+	 -ldflags "-X main.SupportedSDKVersion=$(shell echo $@ | sed -e 's/build-//g' -e 's/-/_/g')" \
 	 ${BASEPKG}/cmd/sdk_utilities-cli
 clean:
 	rm -rf build
+	rm go.mod go.sum | true
+	cp mods/go.mod.bare ./go.mod
 
 docker:
 	docker build -t emeris/sdk-service --build-arg GIT_TOKEN=${GITHUB_TOKEN} -f Dockerfile .
@@ -40,8 +42,12 @@ $(SETUP_VERSIONS):
 
 	echo $(shell echo $@ | sed 's/setup-//g') > .selected_sdk_version
 	
-	./contrib/set-replaces.sh $(shell echo $@ | sed 's/setup-//g') ${TARGETS}
-	./contrib/set-imports.sh $(shell echo $@ | sed 's/setup-//g') ${TARGETS}
+	cp mods/go.mod.$(shell echo $@ | sed 's/setup-//g') ./go.mod
+	cp mods/go.sum.$(shell echo $@ | sed 's/setup-//g') ./go.sum
+
+	#go get -tags $(shell echo $@ | sed 's/setup-/sdk_/g' 's/-/_/g') | true
+	# ./contrib/set-replaces.sh $(shell echo $@ | sed 's/setup-//g') ${TARGETS}
+	# ./contrib/set-imports.sh $(shell echo $@ | sed 's/setup-//g') ${TARGETS}
 
 available-go-tags:
 	@echo Available Go \`//go:build\' tags:
@@ -49,3 +55,11 @@ available-go-tags:
 
 selected-sdk-version:
 	@cat .selected_sdk_version
+
+clean-gomod:
+	@for i in $(shell jq -r 'map(.version |= "\(.)")[].version' ${TARGETS}) ; do \
+		echo "Clearing SDK $$i imports" ; \
+		./contrib/remove-old-imports.sh $$i ${TARGETS}; \
+	done
+versions-json:
+	@jq -r -c "map( { "version": .version } )" ${TARGETS}
