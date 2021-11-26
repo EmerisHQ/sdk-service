@@ -62,4 +62,4 @@ clean-gomod:
 		./contrib/remove-old-imports.sh $$i ${TARGETS}; \
 	done
 versions-json:
-	@jq -r -c "map( { "version": .version } )" ${TARGETS}
+	@jq -r -c "map( { "version": .version } )" ${TARGETS} | sed 's|\.|-|g'
