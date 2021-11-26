@@ -68,5 +68,5 @@ jobs:
         with:
           token: ${{ secrets.TENDERBOT_GIT_TOKEN }}
           repository: allinbits/demeris-backend
-          event-type: dev-push-api-server
+          event-type: dev-push-sdk-service-${{ matrix.version }}
           client-payload: '{"repo_name":"sdk-service","branch_name":"main","image_name":"emeris-sdk-service-${{ matrix.version }}","image_sha":"${{ github.sha }}","service_name":"sdk-service"}'
