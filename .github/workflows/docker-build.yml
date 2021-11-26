@@ -1,4 +1,4 @@
-name: Build docker images
+name: Build and push Docker images on dev env
 
 on:
   workflow_dispatch:
@@ -62,3 +62,11 @@ jobs:
           build-args: |
             GIT_TOKEN=${{ secrets.TENDERBOT_GIT_TOKEN }}
             SDK_TARGET=${{ matrix.version }}
+
+      - name: Call repository_dispatch on demeris-backend
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.TENDERBOT_GIT_TOKEN }}
+          repository: allinbits/demeris-backend
+          event-type: dev-push-api-server
+          client-payload: '{"repo_name":"sdk-service","branch_name":"main","image_name":"emeris-sdk-service-${{ matrix.version }}","image_sha":"${{ github.sha }}","service_name":"sdk-service"}'
