@@ -2,18 +2,10 @@ name: Build and push Docker images on dev env
 
 on:
   workflow_dispatch:
-  pull_request:
-  push:
-    branches:
-      - main
-    paths:
-      - Dockerfile
-      - cmd/**
-      - go.mod
-      - go.sum
-      - grpc_cosmos_sdk_*.go
-      - sdk_utilities.go
-      - helm/**
+  workflow_run:
+    workflows: [Execute tests]
+    branches: [main]
+    types: [completed]
 
 jobs:
   setup-matrix:
