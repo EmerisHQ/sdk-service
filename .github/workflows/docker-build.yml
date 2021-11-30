@@ -23,7 +23,7 @@ jobs:
       - name: Setup matrix combinations
         id: setup-matrix-combinations
         run: |
-          MATRIX_PARAMS_COMBINATIONS="$(make versions-json)"
+          MATRIX_PARAMS_COMBINATIONS="$(cat sdk_targets.json)"
           echo ::set-output name=matrix-combinations::{\"include\":$MATRIX_PARAMS_COMBINATIONS}
     outputs:
       matrix-combinations: ${{ steps.setup-matrix-combinations.outputs.matrix-combinations }}

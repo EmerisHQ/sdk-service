@@ -1,4 +1,4 @@
-//go:build sdk_v0_44_3
+//go:build sdk_v44
 
 package sdkservice
 
@@ -6,8 +6,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	gaia "github.com/cosmos/gaia/v6/app"
 	"sync"
+
+	gaia "github.com/cosmos/gaia/v6/app"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/tendermint/tendermint/abci/types"

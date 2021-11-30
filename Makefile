@@ -4,8 +4,8 @@ TARGETS = sdk_targets.json
 
 SHELL := /usr/bin/env bash
 
-SETUP_VERSIONS = $(shell jq -r 'map(.version |= "setup-\(.)")[].version' ${TARGETS})
-BUILD_VERSIONS = $(shell jq -r 'map(.version |= "build-\(.)")[].version' ${TARGETS})
+SETUP_VERSIONS = $(shell jq -r '.versions|map("setup-\(.)")[]'  ${TARGETS})
+BUILD_VERSIONS = $(shell jq -r '.versions|map("build-\(.)")[]' ${TARGETS})
 
 BASEPKG = github.com/allinbits/sdk-service
 .PHONY: $(OBJS) goagenerate clean $(SETUP_VERSIONS) $(BUILD_VERSIONS)
@@ -35,31 +35,12 @@ docker:
 	docker build -t emeris/sdk-service --build-arg GIT_TOKEN=${GITHUB_TOKEN} -f Dockerfile .
 
 $(SETUP_VERSIONS):
-	if [ -f ".selected_sdk_version" ]; then \
-		echo "Clearing old SDK imports"; \
-		./contrib/remove-old-imports.sh $(shell cat .selected_sdk_version) ${TARGETS}; \
-	fi
-
-	echo $(shell echo $@ | sed 's/setup-//g') > .selected_sdk_version
-	
 	cp mods/go.mod.$(shell echo $@ | sed 's/setup-//g') ./go.mod
 	cp mods/go.sum.$(shell echo $@ | sed 's/setup-//g') ./go.sum
 
-	#go get -tags $(shell echo $@ | sed 's/setup-/sdk_/g' 's/-/_/g') | true
-	# ./contrib/set-replaces.sh $(shell echo $@ | sed 's/setup-//g') ${TARGETS}
-	# ./contrib/set-imports.sh $(shell echo $@ | sed 's/setup-//g') ${TARGETS}
-
 available-go-tags:
 	@echo Available Go \`//go:build\' tags:
-	@jq -r 'map(.version |= "\t - sdk_\(.)")[].version' ${TARGETS}
+	@jq -r '.versions|map("sdk_\(.)")[]' ${TARGETS}
 
-selected-sdk-version:
-	@cat .selected_sdk_version
-
-clean-gomod:
-	@for i in $(shell jq -r 'map(.version |= "\(.)")[].version' ${TARGETS}) ; do \
-		echo "Clearing SDK $$i imports" ; \
-		./contrib/remove-old-imports.sh $$i ${TARGETS}; \
-	done
 versions-json:
 	@jq -r -c "map( { "version": .version } )" ${TARGETS}
