@@ -43,4 +43,4 @@ available-go-tags:
 	@jq -r '.versions|map("sdk_\(.)")[]' ${TARGETS}
 
 versions-json:
-	@jq -r -c "map( { "version": .version } )" ${TARGETS}
+	@jq -r -c "map( { "versions": .[] } )" ${TARGETS}
