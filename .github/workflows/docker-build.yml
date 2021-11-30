@@ -61,15 +61,15 @@ jobs:
           push: true
           context: .
           file: Dockerfile
-          tags: gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.version }}:${{ steps.get_version.outputs.version-without-v }},gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.version }}:${{ github.sha }}
+          tags: gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.versions }}:${{ steps.get_version.outputs.version-without-v }},gcr.io/tendermint-dev/emeris-sdk-service-${{ matrix.versions }}:${{ github.sha }}
           build-args: |
             GIT_TOKEN=${{ secrets.TENDERBOT_GIT_TOKEN }}
-            SDK_TARGET=${{ matrix.version }}
+            SDK_TARGET=${{ matrix.versions }}
 
       - name: Call repository_dispatch on demeris-backend
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.TENDERBOT_GIT_TOKEN }}
           repository: allinbits/demeris-backend
-          event-type: dev-push-sdk-service-${{ matrix.version }}
-          client-payload: '{"repo_name":"sdk-service","branch_name":"main","image_name":"emeris-sdk-service-${{ matrix.version }}","image_sha":"${{ github.sha }}","service_name":"sdk-service-${{ matrix.version }}"}'
+          event-type: dev-push-sdk-service-${{ matrix.versions }}
+          client-payload: '{"repo_name":"sdk-service","branch_name":"main","image_name":"emeris-sdk-service-${{ matrix.versions }}","image_sha":"${{ github.sha }}","service_name":"sdk-service-${{ matrix.versions }}"}'
