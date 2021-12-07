@@ -3,30 +3,26 @@
 package sdkservice
 
 import (
-	gaia "github.com/cosmos/gaia/v6/app"
-
 	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"sync"
 
+	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	"github.com/btcsuite/btcutil/bech32"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
-	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
-	"github.com/tendermint/tendermint/abci/types"
-
-	ibcTypes "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
-	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
-
-	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
-
+	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
+	gaia "github.com/cosmos/gaia/v6/app"
+	ibcTypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
+	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
+	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 )
 
@@ -161,7 +157,7 @@ func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 
 	for idx, m := range txObj.GetMsgs() {
 		txm := sdkutilities.MsgMetadata{}
-		txm.MsgType = sdk.MsgTypeURL(m)
+		txm.MsgType = sdktypes.MsgTypeURL(m)
 
 		switch txm.MsgType {
 		case transferMsgType:
