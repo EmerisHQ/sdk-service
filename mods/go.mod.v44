@@ -10,10 +10,11 @@ replace (
 require goa.design/goa/v3 v3.5.2
 
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20211118153638-07410dcb036a
+	github.com/allinbits/sdk-service-meta v0.0.0-20211202150054-412240d9739c
+	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/cosmos/cosmos-sdk v0.44.3
 	github.com/cosmos/gaia/v6 v6.0.0-rc3
-	github.com/cosmos/ibc-go/v2 v2.0.0 // indirect
+	github.com/cosmos/ibc-go/v2 v2.0.0
 	github.com/gravity-devs/liquidity v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/tendermint/tendermint v0.34.14
