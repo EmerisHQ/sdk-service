@@ -100,3 +100,13 @@ func (s *sdkUtilitiessrvc) MintAnnualProvision(ctx context.Context, payload *sdk
 	ret, err := MintAnnualProvision(payload.ChainName, payload.Port)
 	return &ret, err
 }
+
+func (s *sdkUtilitiessrvc) AccountNumbers(ctx context.Context, payload *sdkutilities.AccountNumbersPayload) (res *sdkutilities.AccountNumbers2, err error) {
+	ret, err := AccountNumbers(payload.ChainName, payload.Port, *payload.AddresHex, *payload.Bech32Prefix)
+	return &ret, err
+}
+
+func (s *sdkUtilitiessrvc) DelegatorRewards(ctx context.Context, payload *sdkutilities.DelegatorRewardsPayload) (res *sdkutilities.DelegatorRewards2, err error) {
+	ret, err := DelegatorRewards(payload.ChainName, payload.Port, *payload.AddresHex, *payload.Bech32Prefix)
+	return &ret, err
+}

@@ -4,10 +4,12 @@ package sdkservice
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"sync"
 
+	"github.com/btcsuite/btcutil/bech32"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
@@ -17,8 +19,12 @@ import (
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
+	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
+
 	gaia "github.com/cosmos/gaia/v5/app"
 	"google.golang.org/grpc"
 )
@@ -385,4 +391,117 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 	}
 
 	return ret, nil
+}
+
+func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp string) (sdkutilities.AccountNumbers2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.AccountNumbers2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	addrBytes, err := hex.DecodeString(hexAddress)
+	if err != nil {
+		return sdkutilities.AccountNumbers2{}, err
+	}
+
+	addr, err := bech32.Encode(bech32hrp, addrBytes)
+	if err != nil {
+		return sdkutilities.AccountNumbers2{}, err
+	}
+
+	authQuery := auth.NewQueryClient(grpcConn)
+
+	res, err := authQuery.Account(context.Background(), &auth.QueryAccountRequest{
+		Address: addr,
+	})
+	if err != nil {
+		return sdkutilities.AccountNumbers2{}, err
+	}
+
+	ret := sdkutilities.AccountNumbers2{}
+
+	if res == nil {
+		return ret, fmt.Errorf("account has no numbers associated")
+	}
+
+	// get a baseAccount
+	var accountI auth.AccountI
+
+	if err := cdc.UnpackAny(res.Account, &accountI); err != nil {
+		return sdkutilities.AccountNumbers2{}, err
+	}
+
+	ret.AccountNumber = int64(accountI.GetAccountNumber())
+	ret.SequenceNumber = int64(accountI.GetSequence())
+	ret.Bech32Address = addr
+
+	return ret, nil
+}
+
+func DelegatorRewards(chainName string, port *int, hexAddress string, bech32hrp string) (sdkutilities.DelegatorRewards2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.DelegatorRewards2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	addrBytes, err := hex.DecodeString(hexAddress)
+	if err != nil {
+		return sdkutilities.DelegatorRewards2{}, err
+	}
+
+	addr, err := bech32.Encode(bech32hrp, addrBytes)
+	if err != nil {
+		return sdkutilities.DelegatorRewards2{}, err
+	}
+
+	distributionQuery := distribution.NewQueryClient(grpcConn)
+
+	res, err := distributionQuery.DelegationTotalRewards(context.Background(), &distribution.QueryDelegationTotalRewardsRequest{
+		DelegatorAddress: addr,
+	})
+
+	if err != nil {
+		return sdkutilities.DelegatorRewards2{}, err
+	}
+
+	ret := sdkutilities.DelegatorRewards2{}
+
+	for _, d := range res.Rewards {
+		r := &sdkutilities.DelegationDelegatorReward{
+			ValidatorAddress: d.ValidatorAddress,
+		}
+
+		for _, rr := range d.Reward {
+			r.Rewards = append(r.Rewards, sdkDecCoinToUtilCoin(rr))
+		}
+
+		ret.Rewards = append(ret.Rewards, r)
+	}
+
+	for _, d := range res.Total {
+		ret.Total = append(ret.Total, sdkDecCoinToUtilCoin(d))
+	}
+
+	return ret, nil
+}
+
+func sdkDecCoinToUtilCoin(c sdktypes.DecCoin) *sdkutilities.Coin {
+	return &sdkutilities.Coin{
+		Denom:  c.Denom,
+		Amount: c.Amount.String(),
+	}
 }
