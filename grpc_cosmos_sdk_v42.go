@@ -1,5 +1,3 @@
-//go:build sdk_v42
-
 package sdkservice
 
 import (

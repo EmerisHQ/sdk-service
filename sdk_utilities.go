@@ -3,7 +3,7 @@ package sdkservice
 import (
 	"context"
 
-	log "github.com/allinbits/sdk-service-meta/gen/log"
+	"github.com/allinbits/sdk-service-meta/gen/log"
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 )
 
@@ -109,4 +109,8 @@ func (s *sdkUtilitiessrvc) AccountNumbers(ctx context.Context, payload *sdkutili
 func (s *sdkUtilitiessrvc) DelegatorRewards(ctx context.Context, payload *sdkutilities.DelegatorRewardsPayload) (res *sdkutilities.DelegatorRewards2, err error) {
 	ret, err := DelegatorRewards(payload.ChainName, payload.Port, *payload.AddresHex, *payload.Bech32Prefix)
 	return &ret, err
+}
+
+func (s *sdkUtilitiessrvc) EstimateFees(ctx context.Context, payload *sdkutilities.EstimateFeesPayload) (res *sdkutilities.Simulation, err error) {
+	panic("implement me")
 }
