@@ -112,5 +112,6 @@ func (s *sdkUtilitiessrvc) DelegatorRewards(ctx context.Context, payload *sdkuti
 }
 
 func (s *sdkUtilitiessrvc) EstimateFees(ctx context.Context, payload *sdkutilities.EstimateFeesPayload) (res *sdkutilities.Simulation, err error) {
-	panic("implement me")
+	ret, err := FeeEstimate(payload.ChainName, payload.Port, payload.TxBytes)
+	return &ret, err
 }

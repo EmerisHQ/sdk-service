@@ -12,7 +12,7 @@ import (
 	"syscall"
 
 	sdkutilitiesapi "github.com/allinbits/sdk-service"
-	log "github.com/allinbits/sdk-service-meta/gen/log"
+	"github.com/allinbits/sdk-service-meta/gen/log"
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 )
 
@@ -42,7 +42,7 @@ func main() {
 		sdkUtilitiesSvc sdkutilities.Service
 	)
 	{
-		sdkUtilitiesSvc = sdkutilitiesapi.NewSdkUtilities(logger)
+		sdkUtilitiesSvc = sdkutilitiesapi.NewSdkUtilities(logger, false)
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services
