@@ -6,6 +6,8 @@ SHELL := /usr/bin/env bash
 
 SETUP_VERSIONS = $(shell jq -r '.versions|map("setup-\(.)")[]'  ${TARGETS})
 BUILD_VERSIONS = $(shell jq -r '.versions|map("build-\(.)")[]' ${TARGETS})
+STORE_MOD_VERSIONS = $(shell jq -r '.versions|map("store-mod-\(.)")[]' ${TARGETS})
+
 
 BASEPKG = github.com/allinbits/sdk-service
 .PHONY: $(OBJS) goagenerate clean $(SETUP_VERSIONS) $(BUILD_VERSIONS)
@@ -44,3 +46,7 @@ available-go-tags:
 
 versions-json:
 	@jq -r -c "map( { "versions": .[] } )" ${TARGETS}
+
+$(STORE_MOD_VERSIONS):
+	cp ./go.mod mods/go.mod.$(shell echo $@ | sed 's/store-mod-//g')
+	cp ./go.sum mods/go.sum.$(shell echo $@ | sed 's/store-mod-//g')
