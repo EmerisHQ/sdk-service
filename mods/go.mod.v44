@@ -10,7 +10,7 @@ replace (
 require goa.design/goa/v3 v3.5.2
 
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20211202150054-412240d9739c
+	github.com/allinbits/sdk-service-meta v0.0.0-20211204171020-f09706ced5e7
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/cosmos/cosmos-sdk v0.44.3
 	github.com/cosmos/gaia/v6 v6.0.0-rc3
