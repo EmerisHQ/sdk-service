@@ -24,7 +24,7 @@ spec:
         - name: sdk-service
           image: {{ .Values.image }}
           {{ if .Values.debug }}
-          args: ["--debug"]
+          args: ["-debug", "-host", "0.0.0.0"]
           {{ end }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           ports:
