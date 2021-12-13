@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -27,8 +28,6 @@ import (
 
 	gaia "github.com/cosmos/gaia/v5/app"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var (
@@ -425,7 +424,7 @@ func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp st
 	})
 
 	if err != nil {
-		if status.Code(err) == codes.NotFound {
+		if strings.Contains(strings.ToLower(err.Error()), "not found") {
 			return sdkutilities.AccountNumbers2{}, nil
 		}
 
