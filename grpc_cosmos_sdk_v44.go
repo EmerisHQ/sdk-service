@@ -1,3 +1,5 @@
+//go:build sdk_v44
+
 package sdkservice
 
 //
