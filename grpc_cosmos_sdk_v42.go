@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -414,7 +413,6 @@ func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp st
 		return sdkutilities.AccountNumbers2{}, err
 	}
 
-	log.Println("hrp", bech32hrp, "bytes", addrBytes)
 	addr, err := bech32.ConvertAndEncode(bech32hrp, addrBytes)
 	if err != nil {
 		return sdkutilities.AccountNumbers2{}, err
