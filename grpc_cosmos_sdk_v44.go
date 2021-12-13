@@ -24,6 +24,8 @@ import (
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -419,6 +421,9 @@ func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp st
 		Address: addr,
 	})
 	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return sdkutilities.AccountNumbers2{}, nil
+		}
 		return sdkutilities.AccountNumbers2{}, err
 	}
 

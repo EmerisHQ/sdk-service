@@ -28,6 +28,8 @@ import (
 
 	gaia "github.com/cosmos/gaia/v5/app"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -423,7 +425,12 @@ func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp st
 	res, err := authQuery.Account(context.Background(), &auth.QueryAccountRequest{
 		Address: addr,
 	})
+
 	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return sdkutilities.AccountNumbers2{}, nil
+		}
+
 		return sdkutilities.AccountNumbers2{}, err
 	}
 
