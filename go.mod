@@ -10,7 +10,7 @@ replace (
 require goa.design/goa/v3 v3.5.3
 
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20211212183412-eb82e7f68eed
+	github.com/allinbits/sdk-service-meta v0.0.0-20211213140844-1ad0f7cce207
 	github.com/armon/go-metrics v0.3.9 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
