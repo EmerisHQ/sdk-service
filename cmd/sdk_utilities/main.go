@@ -16,7 +16,13 @@ import (
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 )
 
+var SupportedSDKVersion = ""
+
 func main() {
+	if SupportedSDKVersion == "" {
+		panic("missing sdk version at compile time, panic!")
+	}
+
 	// Define command line flags, add any other flag required to configure the
 	// service.
 	var (
@@ -42,7 +48,7 @@ func main() {
 		sdkUtilitiesSvc sdkutilities.Service
 	)
 	{
-		sdkUtilitiesSvc = sdkutilitiesapi.NewSdkUtilities(logger, false)
+		sdkUtilitiesSvc = sdkutilitiesapi.NewSdkUtilities(logger, *dbgF)
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services
