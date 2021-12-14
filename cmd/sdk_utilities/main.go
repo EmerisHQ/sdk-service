@@ -16,13 +16,7 @@ import (
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 )
 
-var SupportedSDKVersion = ""
-
 func main() {
-	if SupportedSDKVersion == "" {
-		panic("missing sdk version at compile time, panic!")
-	}
-
 	// Define command line flags, add any other flag required to configure the
 	// service.
 	var (
@@ -129,61 +123,9 @@ func main() {
 			}
 			handleGRPCServer(ctx, u, sdkUtilitiesEndpoints, &wg, errc, logger, *dbgF)
 		}
-	case "0.0.0.0":
-		{
-			addr := "http://0.0.0.0:8080"
-			u, err := url.Parse(addr)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "invalid URL %#v: %s\n", addr, err)
-				os.Exit(1)
-			}
-			if *secureF {
-				u.Scheme = "https"
-			}
-			if *domainF != "" {
-				u.Host = *domainF
-			}
-			if *httpPortF != "" {
-				h, _, err := net.SplitHostPort(u.Host)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "invalid URL %#v: %s\n", u.Host, err)
-					os.Exit(1)
-				}
-				u.Host = net.JoinHostPort(h, *httpPortF)
-			} else if u.Port() == "" {
-				u.Host = net.JoinHostPort(u.Host, "80")
-			}
-			handleHTTPServer(ctx, u, sdkUtilitiesEndpoints, &wg, errc, logger, *dbgF)
-		}
-
-		{
-			addr := "grpc://0.0.0.0:9090"
-			u, err := url.Parse(addr)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "invalid URL %#v: %s\n", addr, err)
-				os.Exit(1)
-			}
-			if *secureF {
-				u.Scheme = "grpcs"
-			}
-			if *domainF != "" {
-				u.Host = *domainF
-			}
-			if *grpcPortF != "" {
-				h, _, err := net.SplitHostPort(u.Host)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "invalid URL %#v: %s\n", u.Host, err)
-					os.Exit(1)
-				}
-				u.Host = net.JoinHostPort(h, *grpcPortF)
-			} else if u.Port() == "" {
-				u.Host = net.JoinHostPort(u.Host, "8080")
-			}
-			handleGRPCServer(ctx, u, sdkUtilitiesEndpoints, &wg, errc, logger, *dbgF)
-		}
 
 	default:
-		fmt.Fprintf(os.Stderr, "invalid host argument: %q (valid hosts: localhost, 0.0.0.0)\n", *hostF)
+		fmt.Fprintf(os.Stderr, "invalid host argument: %q (valid hosts: localhost)\n", *hostF)
 	}
 
 	// Wait for signal.
