@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
@@ -419,7 +420,12 @@ func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp st
 	res, err := authQuery.Account(context.Background(), &auth.QueryAccountRequest{
 		Address: addr,
 	})
+
 	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "not found") {
+			return sdkutilities.AccountNumbers2{}, nil
+		}
+
 		return sdkutilities.AccountNumbers2{}, err
 	}
 
