@@ -50,3 +50,6 @@ versions-json:
 $(STORE_MOD_VERSIONS):
 	cp ./go.mod mods/go.mod.$(shell echo $@ | sed 's/store-mod-//g')
 	cp ./go.sum mods/go.sum.$(shell echo $@ | sed 's/store-mod-//g')
+
+test:
+	go test -v -race ./...
