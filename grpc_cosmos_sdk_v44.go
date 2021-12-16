@@ -11,10 +11,10 @@ import (
 	"sync"
 
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
-	"github.com/btcsuite/btcutil/bech32"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -410,7 +410,7 @@ func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp st
 		return sdkutilities.AccountNumbers2{}, err
 	}
 
-	addr, err := bech32.Encode(bech32hrp, addrBytes)
+	addr, err := bech32.ConvertAndEncode(bech32hrp, addrBytes)
 	if err != nil {
 		return sdkutilities.AccountNumbers2{}, err
 	}
@@ -438,7 +438,7 @@ func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp st
 	// get a baseAccount
 	var accountI auth.AccountI
 
-	if err := cdc.UnpackAny(res.Account, &accountI); err != nil {
+	if err := getCodec().UnpackAny(res.Account, &accountI); err != nil {
 		return sdkutilities.AccountNumbers2{}, err
 	}
 
@@ -467,7 +467,7 @@ func DelegatorRewards(chainName string, port *int, hexAddress string, bech32hrp 
 		return sdkutilities.DelegatorRewards2{}, err
 	}
 
-	addr, err := bech32.Encode(bech32hrp, addrBytes)
+	addr, err := bech32.ConvertAndEncode(bech32hrp, addrBytes)
 	if err != nil {
 		return sdkutilities.DelegatorRewards2{}, err
 	}
