@@ -52,4 +52,4 @@ $(STORE_MOD_VERSIONS):
 	cp ./go.sum mods/go.sum.$(shell echo $@ | sed 's/store-mod-//g')
 
 test:
-	go test -v -race ./...
+	go test -v -race ./... -cover
