@@ -10,7 +10,7 @@ replace (
 require goa.design/goa/v3 v3.5.3
 
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20211213140844-1ad0f7cce207
+	github.com/allinbits/sdk-service-meta v0.0.0-20211216152128-81bcba908a41
 	github.com/armon/go-metrics v0.3.9 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/cosmos/cosmos-sdk v0.42.10
@@ -28,5 +28,5 @@ require (
 	github.com/tendermint/tendermint v0.34.14
 	go.uber.org/zap v1.19.1
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
-	google.golang.org/grpc v1.42.0
+	google.golang.org/grpc v1.43.0
 )
