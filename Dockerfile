@@ -12,8 +12,8 @@ WORKDIR /app
 COPY go.mod go.sum* ./
 COPY . .
 RUN make clean
-RUN CGO_ENABLED=0 GOPROXY=direct make setup-${SDK_TARGET}
-RUN CGO_ENABLED=0 GOPROXY=direct make build-${SDK_TARGET}
+RUN CGO_ENABLED=1 GOPROXY=direct make setup-${SDK_TARGET}
+RUN CGO_ENABLED=1 GOPROXY=direct make build-${SDK_TARGET}
 
 FROM alpine:latest
 
