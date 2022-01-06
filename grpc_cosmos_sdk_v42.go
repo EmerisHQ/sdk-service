@@ -505,6 +505,40 @@ func DelegatorRewards(chainName string, port *int, hexAddress string, bech32hrp 
 	return ret, nil
 }
 
+func FeeEstimate(chainName string, port *int, txBytes []byte) (sdkutilities.Simulation, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.Simulation{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	txObj := &sdktx.Tx{}
+
+	if err := getCodec().UnmarshalBinaryBare(txBytes, txObj); err != nil {
+		return sdkutilities.Simulation{}, fmt.Errorf("cannot unmarshal transaction, %w", err)
+	}
+
+	txSvcClient := sdktx.NewServiceClient(grpcConn)
+	simRes, err := txSvcClient.Simulate(context.Background(), &sdktx.SimulateRequest{
+		Tx: txObj,
+	})
+	if err != nil {
+		return sdkutilities.Simulation{}, err
+	}
+
+	return sdkutilities.Simulation{
+		GasWanted: simRes.GasInfo.GasWanted,
+		GasUsed:   simRes.GasInfo.GasUsed,
+	}, nil
+
+}
+
 func sdkDecCoinToUtilCoin(c sdktypes.DecCoin) *sdkutilities.Coin {
 	return &sdkutilities.Coin{
 		Denom:  c.Denom,

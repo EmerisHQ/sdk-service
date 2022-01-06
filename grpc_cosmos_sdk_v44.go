@@ -24,6 +24,7 @@ import (
 	ibcTypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/tendermint/tendermint/abci/types"
+	terratx "github.com/terra-money/core/custom/auth/tx"
 	"google.golang.org/grpc"
 )
 
@@ -500,6 +501,68 @@ func DelegatorRewards(chainName string, port *int, hexAddress string, bech32hrp 
 	}
 
 	return ret, nil
+}
+
+func FeeEstimate(chainName string, port *int, txBytes []byte) (sdkutilities.Simulation, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.Simulation{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	txSvcClient := sdktx.NewServiceClient(grpcConn)
+	simRes, err := txSvcClient.Simulate(context.Background(), &sdktx.SimulateRequest{
+		TxBytes: txBytes,
+	})
+	if err != nil {
+		return sdkutilities.Simulation{}, err
+	}
+
+	if chainName == "terra" {
+		coins, err := computeTax(grpcConn, txBytes)
+		if err != nil {
+			return sdkutilities.Simulation{}, err
+		}
+
+		return sdkutilities.Simulation{
+			GasWanted: simRes.GasInfo.GasWanted,
+			GasUsed:   simRes.GasInfo.GasUsed,
+			Fees:      coins,
+		}, nil
+	}
+
+	return sdkutilities.Simulation{
+		GasWanted: simRes.GasInfo.GasWanted,
+		GasUsed:   simRes.GasInfo.GasUsed,
+	}, nil
+}
+
+func computeTax(grpcConn *grpc.ClientConn, txBytes []byte) ([]*sdkutilities.Coin, error) {
+	terraCli := terratx.NewServiceClient(grpcConn)
+	taxRes, err := terraCli.ComputeTax(context.Background(), &terratx.ComputeTaxRequest{
+		TxBytes: txBytes,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var coins []*sdkutilities.Coin
+	for _, coin := range taxRes.TaxAmount {
+		coins = append(coins, &sdkutilities.Coin{
+			Denom:  coin.Denom,
+			Amount: coin.Amount.String(),
+		})
+	}
+
+	return coins, nil
 }
 
 func sdkDecCoinToUtilCoin(c sdktypes.DecCoin) *sdkutilities.Coin {
