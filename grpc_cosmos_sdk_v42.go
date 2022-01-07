@@ -117,8 +117,8 @@ func BroadcastTx(chainName string, port *int, txBytes []byte) (string, error) {
 	}
 
 	grpcConn, err := grpc.Dial(
-		fmt.Sprintf("%s:%d", chainName, port), // Or your gRPC server address.
-		grpc.WithInsecure(),                   // The SDK doesn't support any transport security mechanism.
+		fmt.Sprintf("%s:%d", chainName, *port), // Or your gRPC server address.
+		grpc.WithInsecure(),                    // The SDK doesn't support any transport security mechanism.
 	)
 
 	if err != nil {
