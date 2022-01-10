@@ -16,7 +16,10 @@ import (
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 )
 
-var SupportedSDKVersion = ""
+var (
+	SupportedSDKVersion = ""
+	Version             = "not specified"
+)
 
 func main() {
 	if SupportedSDKVersion == "" {
@@ -59,6 +62,8 @@ func main() {
 	{
 		sdkUtilitiesEndpoints = sdkutilities.NewEndpoints(sdkUtilitiesSvc)
 	}
+
+	logger.Infow("starting sdk-service", "version", Version, "supported_sdk_version", SupportedSDKVersion)
 
 	// Create channel used by both the signal handler and server goroutines
 	// to notify the main goroutine when to stop the server.
