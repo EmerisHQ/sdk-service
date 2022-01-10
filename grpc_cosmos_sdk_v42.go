@@ -16,7 +16,6 @@ import (
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/tendermint/tendermint/abci/types"
 
-	ibcTypes "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
@@ -117,8 +116,8 @@ func BroadcastTx(chainName string, port *int, txBytes []byte) (string, error) {
 	}
 
 	grpcConn, err := grpc.Dial(
-		fmt.Sprintf("%s:%d", chainName, port), // Or your gRPC server address.
-		grpc.WithInsecure(),                   // The SDK doesn't support any transport security mechanism.
+		fmt.Sprintf("%s:%d", chainName, *port), // Or your gRPC server address.
+		grpc.WithInsecure(),                    // The SDK doesn't support any transport security mechanism.
 	)
 
 	if err != nil {
@@ -159,7 +158,10 @@ func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 
 	ret := sdkutilities.TxMessagesMetadata{}
 
-	for idx, m := range txObj.GetMsgs() {
+	// Don't include ibc-go momentarily even though v42 isn't affected,
+	// for consistency reasons.
+	// TODO: reintroduce once terra fixes their stuff
+	/*for idx, m := range txObj.GetMsgs() {
 		txm := sdkutilities.MsgMetadata{}
 		txm.MsgType = m.Type()
 
@@ -188,7 +190,7 @@ func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 
 			txm.IbcTransferMetadata = &it
 		}
-	}
+	}*/
 
 	return ret, nil
 }

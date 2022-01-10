@@ -13,6 +13,7 @@ import (
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
@@ -20,8 +21,6 @@ import (
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
-	gaia "github.com/cosmos/gaia/v6/app"
-	ibcTypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/tendermint/tendermint/abci/types"
 	terratx "github.com/terra-money/core/custom/auth/tx"
@@ -39,7 +38,7 @@ const (
 )
 
 func initCodec() {
-	cfg := gaia.MakeEncodingConfig()
+	cfg := simapp.MakeTestEncodingConfig()
 	cdc = cfg.Marshaler
 }
 
@@ -115,8 +114,8 @@ func BroadcastTx(chainName string, port *int, txBytes []byte) (string, error) {
 	}
 
 	grpcConn, err := grpc.Dial(
-		fmt.Sprintf("%s:%d", chainName, port), // Or your gRPC server address.
-		grpc.WithInsecure(),                   // The SDK doesn't support any transport security mechanism.
+		fmt.Sprintf("%s:%d", chainName, *port), // Or your gRPC server address.
+		grpc.WithInsecure(),                    // The SDK doesn't support any transport security mechanism.
 	)
 
 	if err != nil {
@@ -157,7 +156,9 @@ func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 
 	ret := sdkutilities.TxMessagesMetadata{}
 
-	for idx, m := range txObj.GetMsgs() {
+	// Don't include ibc-go momentarily
+	// TODO: reintroduce once terra fixes their stuff
+	/*for idx, m := range txObj.GetMsgs() {
 		txm := sdkutilities.MsgMetadata{}
 		txm.MsgType = sdktypes.MsgTypeURL(m)
 
@@ -186,7 +187,7 @@ func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 
 			txm.IbcTransferMetadata = &it
 		}
-	}
+	}*/
 
 	return ret, nil
 }
