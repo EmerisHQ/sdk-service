@@ -1,5 +1,6 @@
 .idea
 build/
 .selected_sdk_version
-go.mod
-go.sum
+/go.mod
+/go.sum
+/.vscode
