@@ -7,7 +7,8 @@ SHELL := /usr/bin/env bash
 SETUP_VERSIONS = $(shell jq -r '.versions|map("setup-\(.)")[]'  ${TARGETS})
 BUILD_VERSIONS = $(shell jq -r '.versions|map("build-\(.)")[]' ${TARGETS})
 STORE_MOD_VERSIONS = $(shell jq -r '.versions|map("store-mod-\(.)")[]' ${TARGETS})
-
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+COMMIT := $(shell git log -1 --format='%H')
 
 BASEPKG = github.com/allinbits/sdk-service
 .PHONY: $(OBJS) goagenerate clean $(SETUP_VERSIONS) $(BUILD_VERSIONS)
@@ -21,7 +22,7 @@ goagenerate:
 $(BUILD_VERSIONS):
 	go build -o build/sdk_utilities -v \
 	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g') \
-	 -ldflags "-X main.SupportedSDKVersion=$(shell echo $@ | sed -e 's/build-//g' -e 's/-/_/g')" \
+	 -ldflags "-X main.Version=${BRANCH}-${COMMIT} -X main.SupportedSDKVersion=$(shell echo $@ | sed -e 's/build-//g' -e 's/-/_/g')" \
 	 ${BASEPKG}/cmd/sdk_utilities
 	
 	go build -o build/sdk_utilities-cli -v \
