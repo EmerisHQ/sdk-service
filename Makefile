@@ -21,12 +21,12 @@ goagenerate:
 
 $(BUILD_VERSIONS):
 	go build -o build/sdk_utilities -v \
-	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g') \
+	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g'),muslc \
 	 -ldflags "-X main.Version=${BRANCH}-${COMMIT} -X main.SupportedSDKVersion=$(shell echo $@ | sed -e 's/build-//g' -e 's/-/_/g')" \
 	 ${BASEPKG}/cmd/sdk_utilities
 	
 	go build -o build/sdk_utilities-cli -v \
-	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g') \
+	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g'),muslc \
 	 -ldflags "-X main.SupportedSDKVersion=$(shell echo $@ | sed -e 's/build-//g' -e 's/-/_/g')" \
 	 ${BASEPKG}/cmd/sdk_utilities-cli
 clean:
