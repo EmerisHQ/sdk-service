@@ -17,7 +17,6 @@ import (
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
@@ -25,6 +24,7 @@ import (
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
+	gaia "github.com/cosmos/gaia/v6/app"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
@@ -41,7 +41,7 @@ const (
 )
 
 func initCodec() {
-	cfg := simapp.MakeTestEncodingConfig()
+	cfg := gaia.MakeEncodingConfig()
 	cdc = cfg.Marshaler
 }
 
