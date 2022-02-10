@@ -3,12 +3,16 @@
 package sdkservice
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -23,7 +27,6 @@ import (
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/tendermint/tendermint/abci/types"
-	terratx "github.com/terra-money/core/custom/auth/tx"
 	"google.golang.org/grpc"
 )
 
@@ -527,7 +530,7 @@ func FeeEstimate(chainName string, port *int, txBytes []byte) (sdkutilities.Simu
 	}
 
 	if chainName == "terra" {
-		coins, err := computeTax(grpcConn, txBytes)
+		coins, err := computeTax(chainName, txBytes)
 		if err != nil {
 			return sdkutilities.Simulation{}, err
 		}
@@ -545,8 +548,20 @@ func FeeEstimate(chainName string, port *int, txBytes []byte) (sdkutilities.Simu
 	}, nil
 }
 
-func computeTax(grpcConn *grpc.ClientConn, txBytes []byte) ([]*sdkutilities.Coin, error) {
-	terraCli := terratx.NewServiceClient(grpcConn)
+type computeTaxReq struct {
+	TxBytes []byte `json:"tx_bytes"`
+}
+
+type computeTaxResp struct {
+	TaxAmount []struct {
+		Denom  string `json:"denom"`
+		Amount string `json:"amount"`
+	} `json:"tax_amount"`
+}
+
+func computeTax(endpointName string, txBytes []byte) ([]*sdkutilities.Coin, error) {
+	// TODO(gsora): keeping this here until we have terra on ibc-go v2
+	/*terraCli := terratx.NewServiceClient(grpcConn)
 	taxRes, err := terraCli.ComputeTax(context.Background(), &terratx.ComputeTaxRequest{
 		TxBytes: txBytes,
 	})
@@ -560,6 +575,60 @@ func computeTax(grpcConn *grpc.ClientConn, txBytes []byte) ([]*sdkutilities.Coin
 		coins = append(coins, &sdkutilities.Coin{
 			Denom:  coin.Denom,
 			Amount: coin.Amount.String(),
+		})
+	}
+
+	return coins, nil*/
+
+	const path = "/terra/tx/v1beta1/compute_tax"
+	u := url.URL{}
+	u.Host = fmt.Sprintf("%v:1317", endpointName)
+	u.Path = path
+	u.Scheme = "http"
+
+	payload, err := json.Marshal(computeTaxReq{
+		TxBytes: txBytes,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("cannot json marshal terra computeTax request, %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), bytes.NewReader(payload))
+	if err != nil {
+		return nil, fmt.Errorf("cannot create http request to terra computeTax, %w", err)
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	c := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("http terra computeTax request returned error, %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("http terra computeTax request returned with code %v", resp.Status)
+	}
+
+	dec := json.NewDecoder(resp.Body)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	rawTax := computeTaxResp{}
+	if err := dec.Decode(&rawTax); err != nil {
+		return nil, fmt.Errorf("cannot decode terra computeTax response, %w", err)
+	}
+
+	var coins []*sdkutilities.Coin
+	for _, coin := range rawTax.TaxAmount {
+		coins = append(coins, &sdkutilities.Coin{
+			Denom:  coin.Denom,
+			Amount: coin.Amount,
 		})
 	}
 
