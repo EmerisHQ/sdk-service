@@ -20,7 +20,10 @@ RUN make clean
 ADD https://github.com/CosmWasm/wasmvm/releases/download/v0.16.3/libwasmvm_muslc.a /lib/libwasmvm_muslc.a
 
 RUN CGO_ENABLED=1 GOPROXY=direct make setup-${SDK_TARGET}
-RUN CGO_ENABLED=1 GOPROXY=direct make build-${SDK_TARGET}
+RUN --mount=type=cache,target=/go/pkg/mod \
+	--mount=type=cache,target=/root/.cache/go-build \
+	CGO_ENABLED=1 GOPROXY=direct make build-${SDK_TARGET}
+
 
 FROM alpine:latest
 
