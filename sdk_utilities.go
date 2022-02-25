@@ -115,3 +115,8 @@ func (s *sdkUtilitiessrvc) EstimateFees(ctx context.Context, payload *sdkutiliti
 	ret, err := FeeEstimate(payload.ChainName, payload.Port, payload.TxBytes)
 	return &ret, err
 }
+
+func (s *sdkUtilitiessrvc) StakingParams(ctx context.Context, payload *sdkutilities.StakingParamsPayload) (*sdkutilities.StakingParams2, error) {
+	ret, err := StakingParams(payload.ChainName, payload.Port)
+	return &ret, err
+}

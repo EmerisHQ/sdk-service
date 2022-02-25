@@ -1,4 +1,5 @@
 //go:build sdk_v44
+// +build sdk_v44
 
 package sdkservice
 
@@ -13,6 +14,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -640,4 +643,33 @@ func sdkDecCoinToUtilCoin(c sdktypes.DecCoin) *sdkutilities.Coin {
 		Denom:  c.Denom,
 		Amount: c.Amount.String(),
 	}
+}
+
+func StakingParams(chainName string, port *int) (sdkutilities.StakingParams2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.StakingParams2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	sq := staking.NewQueryClient(grpcConn)
+	resp, err := sq.Params(context.Background(), &staking.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.StakingParams2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.StakingParams2{}, fmt.Errorf("cannot json marshal response from staking params, %w", err)
+	}
+
+	return sdkutilities.StakingParams2{
+		StakingParams: respJSON,
+	}, nil
 }
