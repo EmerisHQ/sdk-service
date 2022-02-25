@@ -10,7 +10,7 @@ replace (
 require goa.design/goa/v3 v3.5.5
 
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20220225063547-1a52f5fc65ba
+	github.com/allinbits/sdk-service-meta v0.0.0-20220225122854-eb00092170cc
 	github.com/armon/go-metrics v0.3.9 // indirect
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/cosmos/cosmos-sdk v0.42.10
