@@ -1,4 +1,5 @@
 //go:build sdk_v42
+// +build sdk_v42
 
 package sdkservice
 
@@ -10,13 +11,14 @@ import (
 	"strings"
 	"sync"
 
+	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/tendermint/tendermint/abci/types"
 
-	ibcTypes "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
@@ -117,8 +119,8 @@ func BroadcastTx(chainName string, port *int, txBytes []byte) (string, error) {
 	}
 
 	grpcConn, err := grpc.Dial(
-		fmt.Sprintf("%s:%d", chainName, port), // Or your gRPC server address.
-		grpc.WithInsecure(),                   // The SDK doesn't support any transport security mechanism.
+		fmt.Sprintf("%s:%d", chainName, *port), // Or your gRPC server address.
+		grpc.WithInsecure(),                    // The SDK doesn't support any transport security mechanism.
 	)
 
 	if err != nil {
@@ -159,7 +161,10 @@ func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 
 	ret := sdkutilities.TxMessagesMetadata{}
 
-	for idx, m := range txObj.GetMsgs() {
+	// Don't include ibc-go momentarily even though v42 isn't affected,
+	// for consistency reasons.
+	// TODO: reintroduce once terra fixes their stuff
+	/*for idx, m := range txObj.GetMsgs() {
 		txm := sdkutilities.MsgMetadata{}
 		txm.MsgType = m.Type()
 
@@ -188,7 +193,7 @@ func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 
 			txm.IbcTransferMetadata = &it
 		}
-	}
+	}*/
 
 	return ret, nil
 }
@@ -505,9 +510,72 @@ func DelegatorRewards(chainName string, port *int, hexAddress string, bech32hrp 
 	return ret, nil
 }
 
+func FeeEstimate(chainName string, port *int, txBytes []byte) (sdkutilities.Simulation, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.Simulation{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	txObj := &sdktx.Tx{}
+
+	if err := getCodec().UnmarshalBinaryBare(txBytes, txObj); err != nil {
+		return sdkutilities.Simulation{}, fmt.Errorf("cannot unmarshal transaction, %w", err)
+	}
+
+	txSvcClient := sdktx.NewServiceClient(grpcConn)
+	simRes, err := txSvcClient.Simulate(context.Background(), &sdktx.SimulateRequest{
+		Tx: txObj,
+	})
+	if err != nil {
+		return sdkutilities.Simulation{}, err
+	}
+
+	return sdkutilities.Simulation{
+		GasWanted: simRes.GasInfo.GasWanted,
+		GasUsed:   simRes.GasInfo.GasUsed,
+	}, nil
+
+}
+
 func sdkDecCoinToUtilCoin(c sdktypes.DecCoin) *sdkutilities.Coin {
 	return &sdkutilities.Coin{
 		Denom:  c.Denom,
 		Amount: c.Amount.String(),
 	}
+}
+
+func StakingParams(chainName string, port *int) (sdkutilities.StakingParams2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.StakingParams2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	sq := staking.NewQueryClient(grpcConn)
+	resp, err := sq.Params(context.Background(), &staking.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.StakingParams2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.StakingParams2{}, fmt.Errorf("cannot json marshal response from staking params, %w", err)
+	}
+
+	return sdkutilities.StakingParams2{
+		StakingParams: respJSON,
+	}, nil
 }

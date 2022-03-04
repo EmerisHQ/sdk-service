@@ -1,15 +1,16 @@
-OBJS = $(shell find cmd -mindepth 1 -type d -execdir printf '%s\n' {} +)
+OBJS := $(shell find cmd -mindepth 1 -type d -execdir printf '%s\n' {} +)
 
-TARGETS = sdk_targets.json
+TARGETS := sdk_targets.json
 
 SHELL := /usr/bin/env bash
 
-SETUP_VERSIONS = $(shell jq -r '.versions|map("setup-\(.)")[]'  ${TARGETS})
-BUILD_VERSIONS = $(shell jq -r '.versions|map("build-\(.)")[]' ${TARGETS})
-STORE_MOD_VERSIONS = $(shell jq -r '.versions|map("store-mod-\(.)")[]' ${TARGETS})
+SETUP_VERSIONS := $(shell jq -r '.versions|map("setup-\(.)")[]'  ${TARGETS})
+BUILD_VERSIONS := $(shell jq -r '.versions|map("build-\(.)")[]' ${TARGETS})
+STORE_MOD_VERSIONS := $(shell jq -r '.versions|map("store-mod-\(.)")[]' ${TARGETS})
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+COMMIT := $(shell git log -1 --format='%H')
 
-
-BASEPKG = github.com/allinbits/sdk-service
+BASEPKG := github.com/allinbits/sdk-service
 .PHONY: $(OBJS) goagenerate clean $(SETUP_VERSIONS) $(BUILD_VERSIONS)
 
 
@@ -20,12 +21,12 @@ goagenerate:
 
 $(BUILD_VERSIONS):
 	go build -o build/sdk_utilities -v \
-	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g') \
-	 -ldflags "-X main.SupportedSDKVersion=$(shell echo $@ | sed -e 's/build-//g' -e 's/-/_/g')" \
+	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g'),muslc \
+	 -ldflags "-X main.Version=${BRANCH}-${COMMIT} -X main.SupportedSDKVersion=$(shell echo $@ | sed -e 's/build-//g' -e 's/-/_/g')" \
 	 ${BASEPKG}/cmd/sdk_utilities
 	
 	go build -o build/sdk_utilities-cli -v \
-	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g') \
+	 -tags $(shell echo $@ | sed -e 's/build-/sdk_/g' -e 's/-/_/g'),muslc \
 	 -ldflags "-X main.SupportedSDKVersion=$(shell echo $@ | sed -e 's/build-//g' -e 's/-/_/g')" \
 	 ${BASEPKG}/cmd/sdk_utilities-cli
 clean:
@@ -41,7 +42,7 @@ $(SETUP_VERSIONS):
 	cp mods/go.sum.$(shell echo $@ | sed 's/setup-//g') ./go.sum
 
 available-go-tags:
-	@echo Available Go \`//go:build\' tags:
+	@echo "Available Go \`//go:build\' tags":
 	@jq -r '.versions|map("sdk_\(.)")[]' ${TARGETS}
 
 versions-json:

@@ -1,14 +1,21 @@
 //go:build sdk_v44
+// +build sdk_v44
 
 package sdkservice
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"strings"
 	"sync"
+	"time"
+
+	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -21,7 +28,6 @@ import (
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 	gaia "github.com/cosmos/gaia/v6/app"
-	ibcTypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
@@ -114,8 +120,8 @@ func BroadcastTx(chainName string, port *int, txBytes []byte) (string, error) {
 	}
 
 	grpcConn, err := grpc.Dial(
-		fmt.Sprintf("%s:%d", chainName, port), // Or your gRPC server address.
-		grpc.WithInsecure(),                   // The SDK doesn't support any transport security mechanism.
+		fmt.Sprintf("%s:%d", chainName, *port), // Or your gRPC server address.
+		grpc.WithInsecure(),                    // The SDK doesn't support any transport security mechanism.
 	)
 
 	if err != nil {
@@ -156,7 +162,9 @@ func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 
 	ret := sdkutilities.TxMessagesMetadata{}
 
-	for idx, m := range txObj.GetMsgs() {
+	// Don't include ibc-go momentarily
+	// TODO: reintroduce once terra fixes their stuff
+	/*for idx, m := range txObj.GetMsgs() {
 		txm := sdkutilities.MsgMetadata{}
 		txm.MsgType = sdktypes.MsgTypeURL(m)
 
@@ -185,7 +193,7 @@ func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 
 			txm.IbcTransferMetadata = &it
 		}
-	}
+	}*/
 
 	return ret, nil
 }
@@ -502,9 +510,166 @@ func DelegatorRewards(chainName string, port *int, hexAddress string, bech32hrp 
 	return ret, nil
 }
 
+func FeeEstimate(chainName string, port *int, txBytes []byte) (sdkutilities.Simulation, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.Simulation{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	txSvcClient := sdktx.NewServiceClient(grpcConn)
+	simRes, err := txSvcClient.Simulate(context.Background(), &sdktx.SimulateRequest{
+		TxBytes: txBytes,
+	})
+	if err != nil {
+		return sdkutilities.Simulation{}, err
+	}
+
+	if chainName == "terra" {
+		coins, err := computeTax(chainName, txBytes)
+		if err != nil {
+			return sdkutilities.Simulation{}, err
+		}
+
+		return sdkutilities.Simulation{
+			GasWanted: simRes.GasInfo.GasWanted,
+			GasUsed:   simRes.GasInfo.GasUsed,
+			Fees:      coins,
+		}, nil
+	}
+
+	return sdkutilities.Simulation{
+		GasWanted: simRes.GasInfo.GasWanted,
+		GasUsed:   simRes.GasInfo.GasUsed,
+	}, nil
+}
+
+type computeTaxReq struct {
+	TxBytes []byte `json:"tx_bytes"`
+}
+
+type computeTaxResp struct {
+	TaxAmount []struct {
+		Denom  string `json:"denom"`
+		Amount string `json:"amount"`
+	} `json:"tax_amount"`
+}
+
+func computeTax(endpointName string, txBytes []byte) ([]*sdkutilities.Coin, error) {
+	// TODO(gsora): keeping this here until we have terra on ibc-go v2
+	/*terraCli := terratx.NewServiceClient(grpcConn)
+	taxRes, err := terraCli.ComputeTax(context.Background(), &terratx.ComputeTaxRequest{
+		TxBytes: txBytes,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var coins []*sdkutilities.Coin
+	for _, coin := range taxRes.TaxAmount {
+		coins = append(coins, &sdkutilities.Coin{
+			Denom:  coin.Denom,
+			Amount: coin.Amount.String(),
+		})
+	}
+
+	return coins, nil*/
+
+	const path = "/terra/tx/v1beta1/compute_tax"
+	u := url.URL{}
+	u.Host = fmt.Sprintf("%v:1317", endpointName)
+	u.Path = path
+	u.Scheme = "http"
+
+	payload, err := json.Marshal(computeTaxReq{
+		TxBytes: txBytes,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("cannot json marshal terra computeTax request, %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), bytes.NewReader(payload))
+	if err != nil {
+		return nil, fmt.Errorf("cannot create http request to terra computeTax, %w", err)
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	c := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("http terra computeTax request returned error, %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("http terra computeTax request returned with code %v", resp.Status)
+	}
+
+	dec := json.NewDecoder(resp.Body)
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	rawTax := computeTaxResp{}
+	if err := dec.Decode(&rawTax); err != nil {
+		return nil, fmt.Errorf("cannot decode terra computeTax response, %w", err)
+	}
+
+	var coins []*sdkutilities.Coin
+	for _, coin := range rawTax.TaxAmount {
+		coins = append(coins, &sdkutilities.Coin{
+			Denom:  coin.Denom,
+			Amount: coin.Amount,
+		})
+	}
+
+	return coins, nil
+}
+
 func sdkDecCoinToUtilCoin(c sdktypes.DecCoin) *sdkutilities.Coin {
 	return &sdkutilities.Coin{
 		Denom:  c.Denom,
 		Amount: c.Amount.String(),
 	}
+}
+
+func StakingParams(chainName string, port *int) (sdkutilities.StakingParams2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.StakingParams2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	sq := staking.NewQueryClient(grpcConn)
+	resp, err := sq.Params(context.Background(), &staking.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.StakingParams2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.StakingParams2{}, fmt.Errorf("cannot json marshal response from staking params, %w", err)
+	}
+
+	return sdkutilities.StakingParams2{
+		StakingParams: respJSON,
+	}, nil
 }

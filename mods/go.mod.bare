@@ -10,5 +10,5 @@ replace (
 require goa.design/goa/v3 v3.5.2
 
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20211118153638-07410dcb036a
+	github.com/allinbits/sdk-service-meta v0.0.0-20220225122854-eb00092170cc
 )
