@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	cli "github.com/allinbits/sdk-service-meta/gen/http/cli/sdk_utilities"
+	cli "github.com/emerishq/sdk-service-meta/gen/http/cli/sdk_utilities"
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
 )

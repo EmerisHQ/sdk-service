@@ -10,14 +10,14 @@ STORE_MOD_VERSIONS := $(shell jq -r '.versions|map("store-mod-\(.)")[]' ${TARGET
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
-BASEPKG := github.com/allinbits/sdk-service
+BASEPKG := github.com/emerishq/sdk-service
 .PHONY: $(OBJS) goagenerate clean $(SETUP_VERSIONS) $(BUILD_VERSIONS)
 
 
 goagenerate:
 	rm -rf cmd gen
-	goa example github.com/allinbits/sdk-service-meta
-	find . -type f -name '*.go' -exec sed -i "s|github.com/allinbits/sdk-service/gen|github.com/allinbits/sdk-service-meta/gen|g" {} +
+	goa example github.com/emerishq/sdk-service-meta
+	find . -type f -name '*.go' -exec sed -i "s|github.com/emerishq/sdk-service/gen|github.com/emerishq/sdk-service-meta/gen|g" {} +
 
 $(BUILD_VERSIONS):
 	go build -o build/sdk_utilities -v \

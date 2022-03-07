@@ -11,9 +11,9 @@ import (
 	"sync"
 	"syscall"
 
-	sdkutilitiesapi "github.com/allinbits/sdk-service"
-	log "github.com/allinbits/sdk-service-meta/gen/log"
-	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
+	sdkutilitiesapi "github.com/emerishq/sdk-service"
+	log "github.com/emerishq/sdk-service-meta/gen/log"
+	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 )
 
 var (

@@ -1,4 +1,4 @@
-module github.com/allinbits/sdk-service
+module github.com/emerishq/sdk-service
 
 go 1.16
 
@@ -10,7 +10,7 @@ replace (
 require goa.design/goa/v3 v3.5.5
 
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20220225122854-eb00092170cc
+	github.com/emerishq/sdk-service-meta v0.0.0-20220225122854-eb00092170cc
 	github.com/cosmos/cosmos-sdk v0.44.5
 	github.com/cosmos/gaia/v6 v6.0.0-rc3
 	github.com/cosmos/ibc-go/v2 v2.0.0
