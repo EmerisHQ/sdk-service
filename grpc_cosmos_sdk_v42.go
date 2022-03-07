@@ -318,7 +318,7 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 	resp, err := mq.Inflation(context.Background(), &mint.QueryInflationRequest{})
 
 	if err != nil {
-		return sdkutilities.MintInflation2{}, nil
+		return sdkutilities.MintInflation2{}, err
 	}
 
 	respJSON, err := json.Marshal(resp)
@@ -351,7 +351,7 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 	resp, err := mq.Params(context.Background(), &mint.QueryParamsRequest{})
 
 	if err != nil {
-		return sdkutilities.MintParams2{}, nil
+		return sdkutilities.MintParams2{}, err
 	}
 
 	respJSON, err := json.Marshal(resp)
@@ -384,7 +384,7 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 	resp, err := mq.AnnualProvisions(context.Background(), &mint.QueryAnnualProvisionsRequest{})
 
 	if err != nil {
-		return sdkutilities.MintAnnualProvision2{}, nil
+		return sdkutilities.MintAnnualProvision2{}, err
 	}
 
 	respJSON, err := json.Marshal(resp)
