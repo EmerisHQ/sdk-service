@@ -7,6 +7,8 @@ SHELL := /usr/bin/env bash
 SETUP_VERSIONS := $(shell jq -r '.versions|map("setup-\(.)")[]'  ${TARGETS})
 BUILD_VERSIONS := $(shell jq -r '.versions|map("build-\(.)")[]' ${TARGETS})
 STORE_MOD_VERSIONS := $(shell jq -r '.versions|map("store-mod-\(.)")[]' ${TARGETS})
+TEST_VERSIONS = $(shell jq -r '.versions|map("test-\(.)")[]' ${TARGETS})
+COVERAGE_VERSIONS = $(shell jq -r '.versions|map("coverage-\(.)")[]' ${TARGETS})
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
 
@@ -52,5 +54,12 @@ $(STORE_MOD_VERSIONS):
 	cp ./go.mod mods/go.mod.$(shell echo $@ | sed 's/store-mod-//g')
 	cp ./go.sum mods/go.sum.$(shell echo $@ | sed 's/store-mod-//g')
 
-test:
-	go test -v -race ./... -cover
+$(TEST_VERSIONS):
+	go test -v -failfast -race -count=1 \
+		-tags $(shell echo $@ | sed -e 's/test-/sdk_/g' -e 's/-/_/g'),muslc \
+		./...
+
+$(COVERAGE_VERSIONS):
+	go test -v -failfast -coverprofile=coverage.out -covermode=atomic -count=1\
+		-tags $(shell echo $@ | sed -e 's/coverage-/sdk_/g' -e 's/-/_/g'),muslc \
+		./...
