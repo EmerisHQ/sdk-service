@@ -21,12 +21,12 @@ import (
 
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 
 	gaia "github.com/cosmos/gaia/v5/app"
 	"google.golang.org/grpc"

@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	sdkutilitiessvr "github.com/allinbits/sdk-service-meta/gen/http/sdk_utilities/server"
-	log "github.com/allinbits/sdk-service-meta/gen/log"
-	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
+	sdkutilitiessvr "github.com/emerishq/sdk-service-meta/gen/http/sdk_utilities/server"
+	log "github.com/emerishq/sdk-service-meta/gen/log"
+	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 	"go.uber.org/zap"
 	goahttp "goa.design/goa/v3/http"
 	httpmdlwr "goa.design/goa/v3/http/middleware"

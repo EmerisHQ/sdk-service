@@ -3,8 +3,8 @@ package sdkservice
 import (
 	"context"
 
-	"github.com/allinbits/sdk-service-meta/gen/log"
-	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
+	"github.com/emerishq/sdk-service-meta/gen/log"
+	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 )
 
 // sdk-utilities service example implementation.

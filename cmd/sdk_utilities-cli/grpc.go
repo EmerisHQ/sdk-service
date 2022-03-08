@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	cli "github.com/allinbits/sdk-service-meta/gen/grpc/cli/sdk_utilities"
+	cli "github.com/emerishq/sdk-service-meta/gen/grpc/cli/sdk_utilities"
 	goa "goa.design/goa/v3/pkg"
 	"google.golang.org/grpc"
 )
