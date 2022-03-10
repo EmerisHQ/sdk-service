@@ -76,12 +76,6 @@ github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuy
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d/go.mod h1:rBZYJk541a8SKzHPHnH3zbiI+7dagKZ0cgpgrD7Fyho=
-github.com/emerishq/sdk-service-meta v0.0.0-20211216152128-81bcba908a41 h1:gW30y7jNDSvEIvRIIGi+az5YQkjUz3PusxEraBLssh8=
-github.com/emerishq/sdk-service-meta v0.0.0-20211216152128-81bcba908a41/go.mod h1:ZOehmlZy3nTRgpDE6hImQ5TzwXF8B4QIypYzOMgcO4Q=
-github.com/emerishq/sdk-service-meta v0.0.0-20220114142340-a44e073d0b27 h1:7HQKXS3wg2EXMh6l7/1hrCec7dwukvizvh+g2zU+/mo=
-github.com/emerishq/sdk-service-meta v0.0.0-20220114142340-a44e073d0b27/go.mod h1:ZOehmlZy3nTRgpDE6hImQ5TzwXF8B4QIypYzOMgcO4Q=
-github.com/emerishq/sdk-service-meta v0.0.0-20220225122854-eb00092170cc h1:RYkjiawhVW5kyGedO87fhoJ/B+mPKz3UbMWyCtfoJHU=
-github.com/emerishq/sdk-service-meta v0.0.0-20220225122854-eb00092170cc/go.mod h1:1qjnoOm6sxbMQp2uIMi2EaVIjAazPyom5HNUlGPZdAw=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/apache/thrift v0.12.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
 github.com/apache/thrift v0.13.0/go.mod h1:cp2SuWMxlEZw2r+iP2GNCdIi4C1qmUzdZFSVb+bacwQ=
@@ -232,6 +226,14 @@ github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5m
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
+github.com/emerishq/sdk-service-meta v0.0.0-20211216152128-81bcba908a41 h1:gW30y7jNDSvEIvRIIGi+az5YQkjUz3PusxEraBLssh8=
+github.com/emerishq/sdk-service-meta v0.0.0-20211216152128-81bcba908a41/go.mod h1:ZOehmlZy3nTRgpDE6hImQ5TzwXF8B4QIypYzOMgcO4Q=
+github.com/emerishq/sdk-service-meta v0.0.0-20220114142340-a44e073d0b27 h1:7HQKXS3wg2EXMh6l7/1hrCec7dwukvizvh+g2zU+/mo=
+github.com/emerishq/sdk-service-meta v0.0.0-20220114142340-a44e073d0b27/go.mod h1:ZOehmlZy3nTRgpDE6hImQ5TzwXF8B4QIypYzOMgcO4Q=
+github.com/emerishq/sdk-service-meta v0.0.0-20220225122854-eb00092170cc h1:RYkjiawhVW5kyGedO87fhoJ/B+mPKz3UbMWyCtfoJHU=
+github.com/emerishq/sdk-service-meta v0.0.0-20220225122854-eb00092170cc/go.mod h1:1qjnoOm6sxbMQp2uIMi2EaVIjAazPyom5HNUlGPZdAw=
+github.com/emerishq/sdk-service-meta v0.0.0-20220308092725-c969850e820c h1:cFuGwd6B3zFBHHrIiA2ZQhPwfX2L2I8Nyd+TyWnWhKU=
+github.com/emerishq/sdk-service-meta v0.0.0-20220308092725-c969850e820c/go.mod h1:WobTsokN58o+aUSae8Jbo6rvs5xID+0i7+tqXixo+CQ=
 github.com/enigmampc/btcutil v1.0.3-0.20200723161021-e2fb6adb2a25 h1:2vLKys4RBU4pn2T/hjXMbvwTr1Cvy5THHrQkbeY9HRk=
 github.com/enigmampc/btcutil v1.0.3-0.20200723161021-e2fb6adb2a25/go.mod h1:hTr8+TLQmkUkgcuh3mcr5fjrT9c64ZzsBCdCEC6UppY=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
