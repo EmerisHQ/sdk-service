@@ -10,10 +10,10 @@ replace (
 require goa.design/goa/v3 v3.5.5
 
 require (
-	github.com/emerishq/sdk-service-meta v0.0.0-20220225122854-eb00092170cc
 	github.com/cosmos/cosmos-sdk v0.44.5
 	github.com/cosmos/gaia/v6 v6.0.0-rc3
 	github.com/cosmos/ibc-go/v2 v2.0.0
+	github.com/emerishq/sdk-service-meta v0.0.0-20220308092725-c969850e820c // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect

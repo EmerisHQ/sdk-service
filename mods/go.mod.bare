@@ -7,8 +7,7 @@ replace (
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
 
-require goa.design/goa/v3 v3.5.2
-
 require (
-	github.com/emerishq/sdk-service-meta v0.0.0-20220225122854-eb00092170cc
+	github.com/emerishq/sdk-service-meta v0.0.0-20220308092725-c969850e820c // indirect
+	goa.design/goa/v3 v3.5.5
 )
