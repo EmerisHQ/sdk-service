@@ -8,6 +8,6 @@ replace (
 )
 
 require (
-	github.com/emerishq/sdk-service-meta v0.0.0-20220308092725-c969850e820c // indirect
+	github.com/emerishq/sdk-service-meta v0.0.0-20220310064630-c3482cf45eaf // indirect
 	goa.design/goa/v3 v3.5.5
 )

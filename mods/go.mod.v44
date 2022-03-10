@@ -7,13 +7,13 @@ replace (
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
 
-require goa.design/goa/v3 v3.5.5
+require goa.design/goa/v3 v3.6.1
 
 require (
 	github.com/cosmos/cosmos-sdk v0.44.5
 	github.com/cosmos/gaia/v6 v6.0.0-rc3
 	github.com/cosmos/ibc-go/v2 v2.0.0
-	github.com/emerishq/sdk-service-meta v0.0.0-20220308092725-c969850e820c // indirect
+	github.com/emerishq/sdk-service-meta v0.0.0-20220310064630-c3482cf45eaf // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
@@ -25,5 +25,7 @@ require (
 	github.com/terra-money/core v0.5.12
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20210915214749-c084706c2272 // indirect
-	google.golang.org/grpc v1.44.0
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
+	google.golang.org/genproto v0.0.0-20220308174144-ae0e22291548 // indirect
+	google.golang.org/grpc v1.45.0
 )
