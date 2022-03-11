@@ -22,6 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -55,7 +56,7 @@ func getCodec() codec.Codec {
 	return cdc
 }
 
-func QuerySupply(chainName string, port *int) (sdkutilities.Supply2, error) {
+func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutilities.Supply2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -70,12 +71,26 @@ func QuerySupply(chainName string, port *int) (sdkutilities.Supply2, error) {
 
 	bankQuery := bank.NewQueryClient(grpcConn)
 
-	suppRes, err := bankQuery.TotalSupply(context.Background(), &bank.QueryTotalSupplyRequest{})
+	pagination := &sdkquery.PageRequest{}
+
+	if paginationKey != nil {
+		pagination.Key = []byte(*paginationKey)
+	}
+
+	suppRes, err := bankQuery.TotalSupply(context.Background(), &bank.QueryTotalSupplyRequest{Pagination: pagination})
 	if err != nil {
 		return sdkutilities.Supply2{}, err
 	}
 
 	ret := sdkutilities.Supply2{}
+
+	var nextKey = string(suppRes.Pagination.NextKey)
+	var total = string(suppRes.Pagination.Total)
+
+	ret.Pagination = &sdkutilities.Pagination{
+		NextKey: &nextKey,
+		Total:   &total,
+	}
 
 	for _, s := range suppRes.Supply {
 		ret.Coins = append(ret.Coins, &sdkutilities.Coin{
