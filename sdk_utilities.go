@@ -30,8 +30,8 @@ func (s *sdkUtilitiessrvc) Supply(ctx context.Context, payload *sdkutilities.Sup
 	}
 
 	res = &ret
-	return &ret, err
-}
+	
+	return
 
 func (s *sdkUtilitiessrvc) QueryTx(ctx context.Context, payload *sdkutilities.QueryTxPayload) (res []byte, err error) {
 	return GetTxFromHash(payload.ChainName, payload.Port, payload.Hash)
