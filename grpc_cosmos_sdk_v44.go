@@ -319,7 +319,6 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 		mq := junomint.NewQueryClient(grpcConn)
 
 		resp, err := mq.Inflation(context.Background(), &junomint.QueryInflationRequest{})
-
 		if err != nil {
 			return sdkutilities.MintInflation2{}, err
 		}
@@ -339,7 +338,6 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 	mq := mint.NewQueryClient(grpcConn)
 
 	resp, err := mq.Inflation(context.Background(), &mint.QueryInflationRequest{})
-
 	if err != nil {
 		return sdkutilities.MintInflation2{}, err
 	}
@@ -368,6 +366,27 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 	defer func() {
 		_ = grpcConn.Close()
 	}()
+
+	// Juno has a custom mint module
+	if chainName == "juno" {
+		mq := junomint.NewQueryClient(grpcConn)
+
+		resp, err := mq.Params(context.Background(), &junomint.QueryParamsRequest{})
+		if err != nil {
+			return sdkutilities.MintParams2{}, err
+		}
+
+		respJSON, err := json.Marshal(resp)
+		if err != nil {
+			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
+		}
+
+		ret := sdkutilities.MintParams2{
+			MintParams: respJSON,
+		}
+
+		return ret, nil
+	}
 
 	mq := mint.NewQueryClient(grpcConn)
 
@@ -402,10 +421,29 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 		_ = grpcConn.Close()
 	}()
 
+	if chainName == "juno" {
+		mq := junomint.NewQueryClient(grpcConn)
+
+		resp, err := mq.AnnualProvisions(context.Background(), &junomint.QueryAnnualProvisionsRequest{})
+		if err != nil {
+			return sdkutilities.MintAnnualProvision2{}, err
+		}
+
+		respJSON, err := json.Marshal(resp)
+		if err != nil {
+			return sdkutilities.MintAnnualProvision2{}, fmt.Errorf("cannot json marshal response from mint annual provision, %w", err)
+		}
+
+		ret := sdkutilities.MintAnnualProvision2{
+			MintAnnualProvision: respJSON,
+		}
+
+		return ret, nil
+	}
+
 	mq := mint.NewQueryClient(grpcConn)
 
 	resp, err := mq.AnnualProvisions(context.Background(), &mint.QueryAnnualProvisionsRequest{})
-
 	if err != nil {
 		return sdkutilities.MintAnnualProvision2{}, err
 	}
