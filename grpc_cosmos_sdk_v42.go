@@ -53,7 +53,7 @@ func getCodec() codec.Marshaler {
 	return cdc
 }
 
-func QuerySupply(chainName string, port *int, _ *string) (sdkutilities.Supply2, error) {
+func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutilities.Supply2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -74,6 +74,8 @@ func QuerySupply(chainName string, port *int, _ *string) (sdkutilities.Supply2, 
 	}
 
 	ret := sdkutilities.Supply2{}
+
+	ret.Pagination = &sdkutilities.Pagination{}
 
 	for _, s := range suppRes.Supply {
 		ret.Coins = append(ret.Coins, &sdkutilities.Coin{
