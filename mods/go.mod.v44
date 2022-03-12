@@ -13,7 +13,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.44.5
 	github.com/cosmos/gaia/v6 v6.0.0-rc3
 	github.com/cosmos/ibc-go/v2 v2.0.0
-	github.com/emerishq/sdk-service-meta v0.0.0-20220310064630-c3482cf45eaf // indirect
+	github.com/emerishq/sdk-service-meta v0.0.0-20220312063413-09a3229c4633 // indirect
 	github.com/go-kit/kit v0.12.0 // indirect
 	github.com/go-kit/log v0.2.0 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect

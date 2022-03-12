@@ -271,6 +271,8 @@ github.com/emerishq/sdk-service-meta v0.0.0-20220308092725-c969850e820c h1:cFuGw
 github.com/emerishq/sdk-service-meta v0.0.0-20220308092725-c969850e820c/go.mod h1:WobTsokN58o+aUSae8Jbo6rvs5xID+0i7+tqXixo+CQ=
 github.com/emerishq/sdk-service-meta v0.0.0-20220310064630-c3482cf45eaf h1:Inzqhw4gectCZZ1MMe08H+KQQwAOJAGV62Ea5EVJlkY=
 github.com/emerishq/sdk-service-meta v0.0.0-20220310064630-c3482cf45eaf/go.mod h1:jGbu9LL5QTeMG/Rsu5NYfGCv7e1brNyLxlBPvnSJ+iE=
+github.com/emerishq/sdk-service-meta v0.0.0-20220312063413-09a3229c4633 h1:RFPEkMbcBMdx3iRIcJAK22w+NXRX+BIJsM7DDpnffC8=
+github.com/emerishq/sdk-service-meta v0.0.0-20220312063413-09a3229c4633/go.mod h1:jGbu9LL5QTeMG/Rsu5NYfGCv7e1brNyLxlBPvnSJ+iE=
 github.com/enigmampc/btcutil v1.0.3-0.20200723161021-e2fb6adb2a25/go.mod h1:hTr8+TLQmkUkgcuh3mcr5fjrT9c64ZzsBCdCEC6UppY=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
