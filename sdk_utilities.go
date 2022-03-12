@@ -120,3 +120,8 @@ func (s *sdkUtilitiessrvc) StakingParams(ctx context.Context, payload *sdkutilit
 	ret, err := StakingParams(payload.ChainName, payload.Port)
 	return &ret, err
 }
+
+func (s *sdkUtilitiessrvc) StakingPool(ctx context.Context, payload *sdkutilities.StakingPoolPayload) (*sdkutilities.StakingPool2, error) {
+	ret, err := StakingPool(payload.ChainName, payload.Port)
+	return &ret, err
+}

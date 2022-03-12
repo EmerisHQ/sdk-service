@@ -673,3 +673,32 @@ func StakingParams(chainName string, port *int) (sdkutilities.StakingParams2, er
 		StakingParams: respJSON,
 	}, nil
 }
+
+func StakingPool(chainName string, port *int) (sdkutilities.StakingPool2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.StakingPool2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	sq := staking.NewQueryClient(grpcConn)
+	resp, err := sq.Pool(context.Background(), &staking.QueryPoolRequest{})
+	if err != nil {
+		return sdkutilities.StakingPool2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.StakingPool2{}, fmt.Errorf("cannot json marshal response from staking pool, %w", err)
+	}
+
+	return sdkutilities.StakingPool2{
+		StakingPool: respJSON,
+	}, nil
+}
