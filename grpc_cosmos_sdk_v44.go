@@ -31,6 +31,7 @@ import (
 	gaia "github.com/cosmos/gaia/v6/app"
 	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
+	osmomint "github.com/osmosis-labs/osmosis/v6/x/mint/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 )
@@ -470,6 +471,43 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 
 	ret := sdkutilities.MintAnnualProvision2{
 		MintAnnualProvision: respJSON,
+	}
+
+	return ret, nil
+}
+
+func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.MintEpochProvisions2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	if chainName != "osmosis" {
+		return sdkutilities.MintEpochProvisions2{}, nil
+	}
+
+	mq := osmomint.NewQueryClient(grpcConn)
+
+	resp, err := mq.EpochProvisions(context.Background(), &osmomint.QueryEpochProvisionsRequest{})
+
+	if err != nil {
+		return sdkutilities.MintEpochProvisions2{}, err
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.MintEpochProvisions2{}, fmt.Errorf("cannot json marshal response from mint epoch provision, %w", err)
+	}
+
+	ret := sdkutilities.MintEpochProvisions2{
+		MintEpochProvisions: respJSON,
 	}
 
 	return ret, nil
