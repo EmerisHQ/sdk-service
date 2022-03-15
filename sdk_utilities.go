@@ -23,16 +23,14 @@ func NewSdkUtilities(logger *log.Logger, debug bool) sdkutilities.Service {
 }
 
 // Supply implements supply.
-func (s *sdkUtilitiessrvc) Supply(
-	ctx context.Context,
-	p *sdkutilities.SupplyPayload,
-) (res *sdkutilities.Supply2, err error) {
-	ret, err := QuerySupply(p.ChainName, p.Port)
+func (s *sdkUtilitiessrvc) Supply(ctx context.Context, payload *sdkutilities.SupplyPayload) (res *sdkutilities.Supply2, err error) {
+	ret, err := QuerySupply(payload.ChainName, payload.Port, payload.PaginationKey)
 	if err != nil {
 		return nil, err
 	}
 
 	res = &ret
+
 	return
 }
 
