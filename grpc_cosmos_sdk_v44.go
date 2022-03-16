@@ -76,7 +76,10 @@ func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutiliti
 	pagination := &sdkquery.PageRequest{}
 
 	if paginationKey != nil {
-		pagination.Key = []byte(*paginationKey)
+		key, err := base64.StdEncoding.DecodeString(*paginationKey)
+		if err == nil {
+			pagination.Key = key
+		}
 	}
 
 	suppRes, err := bankQuery.TotalSupply(context.Background(), &bank.QueryTotalSupplyRequest{Pagination: pagination})
