@@ -6,11 +6,13 @@ package sdkservice
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -84,8 +86,8 @@ func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutiliti
 
 	ret := sdkutilities.Supply2{}
 
-	var nextKey = string(suppRes.Pagination.NextKey)
-	var total = string(suppRes.Pagination.Total)
+	var nextKey = base64.StdEncoding.EncodeToString(suppRes.Pagination.NextKey)
+	var total = strconv.FormatUint(suppRes.Pagination.Total, 10)
 
 	ret.Pagination = &sdkutilities.Pagination{
 		NextKey: &nextKey,
