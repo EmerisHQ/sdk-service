@@ -13,7 +13,7 @@ require (
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/cosmos/cosmos-sdk v0.42.10
 	github.com/cosmos/gaia/v5 v5.0.8
-	github.com/emerishq/sdk-service-meta v0.0.0-20220312063413-09a3229c4633
+	github.com/emerishq/sdk-service-meta v0.0.0-20220316052250-ee0610b08cb9
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gravity-devs/liquidity v1.2.9

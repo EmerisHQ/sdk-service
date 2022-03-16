@@ -321,6 +321,8 @@ github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/edsrzf/mmap-go v0.0.0-20160512033002-935e0e8a636c/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
 github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
+github.com/emerishq/sdk-service-meta v0.0.0-20220316052250-ee0610b08cb9 h1:M3rOEqaVYulRKdxtUC5cB0Acx0w8LRMFJUejEtYHdNo=
+github.com/emerishq/sdk-service-meta v0.0.0-20220316052250-ee0610b08cb9/go.mod h1:8Ls65y1C+K9Am7ug7KMbE5FRf8DRGF94HucBHd58nU0=
 github.com/emirpasic/gods v1.12.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
 github.com/enigmampc/btcutil v1.0.3-0.20200723161021-e2fb6adb2a25/go.mod h1:hTr8+TLQmkUkgcuh3mcr5fjrT9c64ZzsBCdCEC6UppY=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
