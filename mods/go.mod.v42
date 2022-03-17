@@ -20,7 +20,6 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/lib/pq v1.10.2 // indirect
 	github.com/onsi/ginkgo v1.16.4 // indirect
-	github.com/osmosis-labs/osmosis v1.0.4
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/rs/zerolog v1.23.0 // indirect
 	github.com/spf13/cobra v1.2.1 // indirect

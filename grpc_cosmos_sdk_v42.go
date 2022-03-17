@@ -20,7 +20,6 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
-	osmomint "github.com/osmosis-labs/osmosis/x/mint/types"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
@@ -403,40 +402,7 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 }
 
 func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
-	if port == nil {
-		port = &grpcPort
-	}
-	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
-	if err != nil {
-		return sdkutilities.MintEpochProvisions2{}, err
-	}
-
-	defer func() {
-		_ = grpcConn.Close()
-	}()
-
-	if chainName != "osmosis" {
-		return sdkutilities.MintEpochProvisions2{}, nil
-	}
-
-	mq := osmomint.NewQueryClient(grpcConn)
-
-	resp, err := mq.EpochProvisions(context.Background(), &osmomint.QueryEpochProvisionsRequest{})
-
-	if err != nil {
-		return sdkutilities.MintEpochProvisions2{}, err
-	}
-
-	respJSON, err := json.Marshal(resp)
-	if err != nil {
-		return sdkutilities.MintEpochProvisions2{}, fmt.Errorf("cannot json marshal response from mint epoch provision, %w", err)
-	}
-
-	ret := sdkutilities.MintEpochProvisions2{
-		MintEpochProvisions: respJSON,
-	}
-
-	return ret, nil
+	return sdkutilities.MintEpochProvisions2{}, nil
 }
 
 func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp string) (sdkutilities.AccountNumbers2, error) {
