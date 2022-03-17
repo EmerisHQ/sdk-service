@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -34,6 +36,7 @@ import (
 
 var (
 	grpcPort                 = 9090
+	httpPort                 = 1317
 	cdc      codec.Marshaler = nil
 	cdcOnce  sync.Once
 )
@@ -303,6 +306,44 @@ func LiquidityPools(chainName string, port *int) (sdkutilities.LiquidityPools2, 
 }
 
 func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, error) {
+	if chainName == "emoney" {
+		type EmoneyInflation struct {
+			State struct {
+				LastApplied       string `json:"last_applied"`
+				LastAppliedHeight string `json:"last_applied_height"`
+				Assets            []struct {
+					Denom     string `json:"denom"`
+					Inflation string `json:"inflation"`
+					Accum     string `json:"accum"`
+				} `json:"assets"`
+			} `json:"state"`
+		}
+
+		var data EmoneyInflation
+
+		resp, err := http.Get(fmt.Sprintf("http://%s:%d/e-money/inflation/v1/state", chainName, httpPort))
+		if err != nil {
+			return sdkutilities.MintInflation2{}, fmt.Errorf("cannot get emoney mint inflation, %w", err)
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+
+		if err := json.Unmarshal(body, &data); err != nil {
+			return sdkutilities.MintInflation2{}, fmt.Errorf("cannot json marshal response from mint inflation, %w", err)
+		}
+
+		ret := sdkutilities.MintInflation2{}
+
+		for _, v := range data.State.Assets {
+			if v.Denom == "ungm" {
+				ret.MintInflation = []byte(v.Inflation)
+			}
+		}
+
+		return ret, nil
+	}
+
 	if port == nil {
 		port = &grpcPort
 	}
