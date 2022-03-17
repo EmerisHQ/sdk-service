@@ -477,6 +477,10 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 }
 
 func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
+	if chainName != "osmosis" {
+		return sdkutilities.MintEpochProvisions2{}, nil
+	}
+
 	if port == nil {
 		port = &grpcPort
 	}
@@ -488,10 +492,6 @@ func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochPro
 	defer func() {
 		_ = grpcConn.Close()
 	}()
-
-	if chainName != "osmosis" {
-		return sdkutilities.MintEpochProvisions2{}, nil
-	}
 
 	mq := osmomint.NewQueryClient(grpcConn)
 
