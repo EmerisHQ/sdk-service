@@ -33,8 +33,8 @@ import (
 	gaia "github.com/cosmos/gaia/v6/app"
 	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
-	osmomint "github.com/osmosis-labs/osmosis/v7/x/mint/types"
 	irismint "github.com/irisnet/irishub/modules/mint/types"
+	osmomint "github.com/osmosis-labs/osmosis/v7/x/mint/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 )
