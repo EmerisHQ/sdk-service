@@ -13,7 +13,8 @@ require (
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/cosmos/cosmos-sdk v0.42.10
 	github.com/cosmos/gaia/v5 v5.0.8
-	github.com/emerishq/sdk-service-meta v0.0.0-20220316104457-d271bfdc96c5
+	github.com/e-money/em-ledger v1.1.4 // indirect
+	github.com/emerishq/sdk-service-meta v0.0.0-20220318230543-6f58257fa13a
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gravity-devs/liquidity v1.2.9
@@ -21,7 +22,6 @@ require (
 	github.com/lib/pq v1.10.2 // indirect
 	github.com/onsi/ginkgo v1.16.4 // indirect
 	github.com/prometheus/common v0.32.1 // indirect
-	github.com/rs/zerolog v1.23.0 // indirect
 	github.com/spf13/cobra v1.2.1 // indirect
 	github.com/tendermint/tendermint v0.34.14
 	go.uber.org/zap v1.21.0
