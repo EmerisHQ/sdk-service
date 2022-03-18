@@ -337,7 +337,7 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 
 		for _, v := range data.State.Assets {
 			if v.Denom == "ungm" {
-				ret.MintInflation = []byte(v.Inflation)
+				ret.MintInflation = []byte(fmt.Sprintf("{\"inflation\":\"%s\"}", v.Inflation))
 			}
 		}
 
