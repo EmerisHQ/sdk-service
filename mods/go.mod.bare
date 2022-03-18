@@ -11,5 +11,4 @@ require goa.design/goa/v3 v3.6.1
 
 require (
 	github.com/emerishq/sdk-service-meta v0.0.0-20220316104457-d271bfdc96c5 // indirect
-	goa.design/goa/v3 v3.6.1
 )
