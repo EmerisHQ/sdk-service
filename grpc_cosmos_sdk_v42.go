@@ -401,6 +401,10 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 	return ret, nil
 }
 
+func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
+	return sdkutilities.MintEpochProvisions2{}, nil
+}
+
 func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp string) (sdkutilities.AccountNumbers2, error) {
 	if port == nil {
 		port = &grpcPort

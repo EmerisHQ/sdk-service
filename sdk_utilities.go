@@ -99,6 +99,12 @@ func (s *sdkUtilitiessrvc) MintAnnualProvision(ctx context.Context, payload *sdk
 	return &ret, err
 }
 
+// MintEpochProvisions implements mintEpochProvisions.
+func (s *sdkUtilitiessrvc) MintEpochProvisions(ctx context.Context, payload *sdkutilities.MintEpochProvisionsPayload) (res *sdkutilities.MintEpochProvisions2, err error) {
+	ret, err := MintEpochProvisions(payload.ChainName, payload.Port)
+	return &ret, err
+}
+
 func (s *sdkUtilitiessrvc) AccountNumbers(ctx context.Context, payload *sdkutilities.AccountNumbersPayload) (res *sdkutilities.AccountNumbers2, err error) {
 	ret, err := AccountNumbers(payload.ChainName, payload.Port, *payload.AddresHex, *payload.Bech32Prefix)
 	return &ret, err

@@ -6,11 +6,13 @@ package sdkservice
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -31,6 +33,7 @@ import (
 	gaia "github.com/cosmos/gaia/v6/app"
 	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
+	osmomint "github.com/osmosis-labs/osmosis/v7/x/mint/types"
 	irismint "github.com/irisnet/irishub/modules/mint/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
@@ -75,7 +78,10 @@ func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutiliti
 	pagination := &sdkquery.PageRequest{}
 
 	if paginationKey != nil {
-		pagination.Key = []byte(*paginationKey)
+		key, err := base64.StdEncoding.DecodeString(*paginationKey)
+		if err == nil {
+			pagination.Key = key
+		}
 	}
 
 	suppRes, err := bankQuery.TotalSupply(context.Background(), &bank.QueryTotalSupplyRequest{Pagination: pagination})
@@ -85,8 +91,8 @@ func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutiliti
 
 	ret := sdkutilities.Supply2{}
 
-	var nextKey = string(suppRes.Pagination.NextKey)
-	var total = string(suppRes.Pagination.Total)
+	var nextKey = base64.StdEncoding.EncodeToString(suppRes.Pagination.NextKey)
+	var total = strconv.FormatUint(suppRes.Pagination.Total, 10)
 
 	ret.Pagination = &sdkutilities.Pagination{
 		NextKey: &nextKey,
@@ -531,6 +537,43 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 
 	ret := sdkutilities.MintAnnualProvision2{
 		MintAnnualProvision: respJSON,
+	}
+
+	return ret, nil
+}
+
+func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
+	if chainName != "osmosis" {
+		return sdkutilities.MintEpochProvisions2{}, nil
+	}
+
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.MintEpochProvisions2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	mq := osmomint.NewQueryClient(grpcConn)
+
+	resp, err := mq.EpochProvisions(context.Background(), &osmomint.QueryEpochProvisionsRequest{})
+
+	if err != nil {
+		return sdkutilities.MintEpochProvisions2{}, err
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.MintEpochProvisions2{}, fmt.Errorf("cannot json marshal response from mint epoch provision, %w", err)
+	}
+
+	ret := sdkutilities.MintEpochProvisions2{
+		MintEpochProvisions: respJSON,
 	}
 
 	return ret, nil
