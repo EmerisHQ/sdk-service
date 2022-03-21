@@ -432,7 +432,7 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 		}
 
 		ret := sdkutilities.MintParams2{
-			MintParams: []byte(fmt.Sprintf("{\"params\":\"%s\"}", resp.String())),
+			MintParams: []byte(fmt.Sprintf("{\"params\":\"%s\"}", resp.GetParams().String())),
 		}
 
 		return ret, nil
