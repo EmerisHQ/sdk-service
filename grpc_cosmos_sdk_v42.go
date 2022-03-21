@@ -88,6 +88,30 @@ func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutiliti
 	return ret, nil
 }
 
+func SupplyDenom(chainName string, port *int, denom *string) (*sdkutilities.Supply2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return &sdkutilities.Supply2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	bankQuery := bank.NewQueryClient(grpcConn)
+	suppRes, err := bankQuery.SupplyOf(context.Background(), &bank.QuerySupplyOfRequest{Denom: *denom})
+	if err != nil {
+		return &sdkutilities.Supply2{}, err
+	}
+
+	ret := sdkutilities.Supply2{Coins: []*sdkutilities.Coin{{Denom: *denom, Amount: suppRes.Amount.String()}}}
+
+	return &ret, nil
+}
+
 func GetTxFromHash(chainName string, port *int, hash string) ([]byte, error) {
 	if port == nil {
 		port = &grpcPort
