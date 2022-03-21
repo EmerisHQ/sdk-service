@@ -305,6 +305,9 @@ func LiquidityPools(chainName string, port *int) (sdkutilities.LiquidityPools2, 
 
 func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, error) {
 	if chainName == "emoney" {
+		// emoney inflation is different from the traditional cosmos sdk inflation,
+		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
+		// rate provided in the endpoint.
 		return emoneyInflation(chainName, port)
 	}
 
@@ -342,6 +345,9 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 
 func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 	if chainName == "emoney" {
+		// emoney inflation is different from the traditional cosmos sdk inflation,
+		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
+		// rate provided in the endpoint.
 		return sdkutilities.MintParams2{}, nil
 	}
 	if port == nil {
@@ -378,6 +384,9 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 
 func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualProvision2, error) {
 	if chainName == "emoney" {
+		// emoney inflation is different from the traditional cosmos sdk inflation,
+		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
+		// rate provided in the endpoint.
 		return sdkutilities.MintAnnualProvision2{}, nil
 	}
 	if port == nil {
