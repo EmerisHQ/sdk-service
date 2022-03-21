@@ -658,8 +658,8 @@ func emoneyInflation(chainName string, port *int) (sdkutilities.MintInflation2, 
 	}
 
 	for _, v := range data.State.Assets {
-		if *v.Denom == "ungm" {
-			ret.MintInflation = []byte(fmt.Sprintf("{\"inflation\":\"%s\"}", *v.Inflation))
+		if v.Denom == "ungm" {
+			ret.MintInflation = []byte(fmt.Sprintf("{\"inflation\":\"%s\"}", v.Inflation))
 		}
 	}
 

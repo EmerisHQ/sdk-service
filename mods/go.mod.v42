@@ -14,7 +14,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.42.10
 	github.com/cosmos/gaia/v5 v5.0.8
 	github.com/e-money/em-ledger v1.1.4 // indirect
-	github.com/emerishq/sdk-service-meta v0.0.0-20220318230543-6f58257fa13a
+	github.com/emerishq/sdk-service-meta v0.0.0-20220321042948-868cfac53d01
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gravity-devs/liquidity v1.2.9
