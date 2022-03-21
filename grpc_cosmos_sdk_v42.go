@@ -35,7 +35,6 @@ import (
 
 var (
 	grpcPort                 = 9090
-	httpPort                 = 1317
 	cdc      codec.Marshaler = nil
 	cdcOnce  sync.Once
 )
