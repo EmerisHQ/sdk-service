@@ -15,7 +15,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.45.1
 	github.com/cosmos/gaia/v5 v5.0.8
 	github.com/cosmos/gaia/v6 v6.0.0-rc3
-	github.com/emerishq/sdk-service-meta v0.0.0-20220316104457-d271bfdc96c5
+	github.com/emerishq/sdk-service-meta v0.0.0-20220321045904-ff7c06107a05
 	github.com/gravity-devs/liquidity v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/irisnet/irishub v1.2.0

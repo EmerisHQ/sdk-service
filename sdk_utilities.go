@@ -129,3 +129,8 @@ func (s *sdkUtilitiessrvc) StakingPool(ctx context.Context, payload *sdkutilitie
 	ret, err := StakingPool(payload.ChainName, payload.Port)
 	return &ret, err
 }
+
+func (s *sdkUtilitiessrvc) EmoneyInflation(ctx context.Context, payload *sdkutilities.EmoneyInflationPayload) (*sdkutilities.EmoneyInflation2, error) {
+	// ret, err := EmoneyInflation(payload.ChainName, payload.Port)
+	return &sdkutilities.EmoneyInflation2{}, nil
+}
