@@ -431,8 +431,16 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 			return sdkutilities.MintParams2{}, err
 		}
 
+		//respInterface := struct {
+		//	Params irismint.Params `json:"params"`
+		//}{resp.GetParams()}
+		respJSON, err := json.Marshal(resp.GetParams())
+		if err != nil {
+			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
+		}
+
 		ret := sdkutilities.MintParams2{
-			MintParams: []byte(fmt.Sprintf("{\"params\":\"%s\"}", resp.GetParams().String())),
+			MintParams: respJSON,
 		}
 
 		return ret, nil
