@@ -233,6 +233,8 @@ github.com/emerishq/sdk-service-meta v0.0.0-20220318230543-6f58257fa13a h1:mdzEt
 github.com/emerishq/sdk-service-meta v0.0.0-20220318230543-6f58257fa13a/go.mod h1:kDThe+pyl/SNUWnrJlsGO1hmhQR4Ql7RlkXIl0aForM=
 github.com/emerishq/sdk-service-meta v0.0.0-20220321042948-868cfac53d01 h1:eznnZqeaYBaVrYmUmGC/W6bz8SBS3mFCHq7nDwBaXzA=
 github.com/emerishq/sdk-service-meta v0.0.0-20220321042948-868cfac53d01/go.mod h1:kDThe+pyl/SNUWnrJlsGO1hmhQR4Ql7RlkXIl0aForM=
+github.com/emerishq/sdk-service-meta v0.0.0-20220321045904-ff7c06107a05 h1:04/8kDz3xMFzagj0hQDf4hoaXvKrtT8KaIWtHJty69M=
+github.com/emerishq/sdk-service-meta v0.0.0-20220321045904-ff7c06107a05/go.mod h1:kDThe+pyl/SNUWnrJlsGO1hmhQR4Ql7RlkXIl0aForM=
 github.com/enigmampc/btcutil v1.0.3-0.20200723161021-e2fb6adb2a25 h1:2vLKys4RBU4pn2T/hjXMbvwTr1Cvy5THHrQkbeY9HRk=
 github.com/enigmampc/btcutil v1.0.3-0.20200723161021-e2fb6adb2a25/go.mod h1:hTr8+TLQmkUkgcuh3mcr5fjrT9c64ZzsBCdCEC6UppY=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
