@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	emoneyinflation "github.com/e-money/em-ledger/x/inflation/types"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/tendermint/tendermint/abci/types"
 
@@ -303,6 +304,13 @@ func LiquidityPools(chainName string, port *int) (sdkutilities.LiquidityPools2, 
 }
 
 func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, error) {
+	if chainName == "emoney" {
+		// emoney inflation is different from the traditional cosmos sdk inflation,
+		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
+		// rate provided in the endpoint.
+		return emoneyInflation(chainName, port)
+	}
+
 	if port == nil {
 		port = &grpcPort
 	}
@@ -336,6 +344,12 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 }
 
 func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
+	if chainName == "emoney" {
+		// emoney inflation is different from the traditional cosmos sdk inflation,
+		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
+		// rate provided in the endpoint.
+		return sdkutilities.MintParams2{}, nil
+	}
 	if port == nil {
 		port = &grpcPort
 	}
@@ -369,6 +383,12 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 }
 
 func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualProvision2, error) {
+	if chainName == "emoney" {
+		// emoney inflation is different from the traditional cosmos sdk inflation,
+		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
+		// rate provided in the endpoint.
+		return sdkutilities.MintAnnualProvision2{}, nil
+	}
 	if port == nil {
 		port = &grpcPort
 	}
@@ -613,4 +633,43 @@ func StakingPool(chainName string, port *int) (sdkutilities.StakingPool2, error)
 	return sdkutilities.StakingPool2{
 		StakingPool: respJSON,
 	}, nil
+}
+
+func emoneyInflation(chainName string, port *int) (sdkutilities.MintInflation2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.MintInflation2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	emc := emoneyinflation.NewQueryClient(grpcConn)
+	resp, err := emc.Inflation(context.Background(), &emoneyinflation.QueryInflationRequest{})
+	if err != nil {
+		return sdkutilities.MintInflation2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.MintInflation2{}, fmt.Errorf("cannot json marshal response from emoney inflation, %w", err)
+	}
+
+	var ret sdkutilities.MintInflation2
+	var data sdkutilities.EmoneyInflation2
+	if err := json.Unmarshal(respJSON, &data); err != nil {
+		return sdkutilities.MintInflation2{}, fmt.Errorf("cannot json marshal response from mint inflation, %w", err)
+	}
+
+	for _, v := range data.State.Assets {
+		if v.Denom == "ungm" {
+			ret.MintInflation = []byte(fmt.Sprintf("{\"inflation\":\"%s\"}", v.Inflation))
+		}
+	}
+
+	return ret, nil
 }
