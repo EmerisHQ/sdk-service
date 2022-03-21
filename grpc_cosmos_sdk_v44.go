@@ -364,13 +364,8 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 			return sdkutilities.MintInflation2{}, err
 		}
 
-		respJSON, err := json.Marshal(resp.GetParams().Inflation.String())
-		if err != nil {
-			return sdkutilities.MintInflation2{}, fmt.Errorf("cannot json marshal response from mint inflation, %w", err)
-		}
-
 		ret := sdkutilities.MintInflation2{
-			MintInflation: respJSON,
+			MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%s\"}", resp.GetParams().Inflation.String())),
 		}
 
 		return ret, nil
@@ -436,13 +431,8 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 			return sdkutilities.MintParams2{}, err
 		}
 
-		respJSON, err := json.Marshal(resp.GetParams())
-		if err != nil {
-			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
-		}
-
 		ret := sdkutilities.MintParams2{
-			MintParams: respJSON,
+			MintParams: []byte(fmt.Sprintf("{\"params\":\"%s\"}", resp.String())),
 		}
 
 		return ret, nil
@@ -511,13 +501,9 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 		// Welcome to the world of ugly code. How did I come up with this hack you may ask,
 		// 1. The logic is taken from here: https://github.com/irisnet/irishub/blob/71503a902e193aecb8bce08b4a1a7dc0dc20c17c/modules/mint/types/minter.go#L45
 		// 2. inflationBase is taken from here: https://github.com/irisnet/irishub/blob/71503a902e193aecb8bce08b4a1a7dc0dc20c17c/docs/features/mint.md
-		respJSON, err := json.Marshal(resp.Params.Inflation.MulInt(sdktypes.NewIntWithDecimal(2000000000, 6)))
-		if err != nil {
-			return sdkutilities.MintAnnualProvision2{}, fmt.Errorf("cannot json marshal response from mint  annual provision, %w", err)
-		}
-
+		ap := resp.Params.Inflation.MulInt(sdktypes.NewIntWithDecimal(2000000000, 6))
 		ret := sdkutilities.MintAnnualProvision2{
-			MintAnnualProvision: respJSON,
+			MintAnnualProvision: []byte(fmt.Sprintf("{\"annual_provisions\":\"%s\"}", ap.String())),
 		}
 
 		return ret, nil
