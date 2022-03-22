@@ -33,6 +33,7 @@ import (
 	gaia "github.com/cosmos/gaia/v6/app"
 	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
+	irismint "github.com/irisnet/irishub/modules/mint/types"
 	osmomint "github.com/osmosis-labs/osmosis/v7/x/mint/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
@@ -356,6 +357,20 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 		return ret, nil
 	}
 
+	if strings.EqualFold(chainName, "iris") { // Also allow Iris/IRIS
+		iq := irismint.NewQueryClient(grpcConn)
+		resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
+		if err != nil {
+			return sdkutilities.MintInflation2{}, err
+		}
+
+		ret := sdkutilities.MintInflation2{
+			MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%s\"}", resp.GetParams().Inflation.String())),
+		}
+
+		return ret, nil
+	}
+
 	mq := mint.NewQueryClient(grpcConn)
 
 	resp, err := mq.Inflation(context.Background(), &mint.QueryInflationRequest{})
@@ -398,6 +413,28 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 		}
 
 		respJSON, err := json.Marshal(resp)
+		if err != nil {
+			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
+		}
+
+		ret := sdkutilities.MintParams2{
+			MintParams: respJSON,
+		}
+
+		return ret, nil
+	}
+
+	if strings.EqualFold(chainName, "iris") { // Also allow Iris/IRIS
+		iq := irismint.NewQueryClient(grpcConn)
+		resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
+		if err != nil {
+			return sdkutilities.MintParams2{}, err
+		}
+
+		respInterface := struct {
+			Params irismint.Params `json:"params"`
+		}{resp.GetParams()}
+		respJSON, err := json.Marshal(respInterface)
 		if err != nil {
 			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
 		}
@@ -457,6 +494,25 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 
 		ret := sdkutilities.MintAnnualProvision2{
 			MintAnnualProvision: respJSON,
+		}
+
+		return ret, nil
+	}
+
+	if strings.EqualFold(chainName, "iris") { // Also allow Iris/IRIS
+		iq := irismint.NewQueryClient(grpcConn)
+		resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
+		if err != nil {
+			return sdkutilities.MintAnnualProvision2{}, err
+		}
+
+		// Welcome to the world of ugly code. How did I come up with this hack you may ask,
+		// 1. The logic is taken from here: https://github.com/irisnet/irishub/blob/71503a902e193aecb8bce08b4a1a7dc0dc20c17c/modules/mint/types/minter.go#L45
+		// 2. inflationBase is taken from here: https://github.com/irisnet/irishub/blob/71503a902e193aecb8bce08b4a1a7dc0dc20c17c/docs/features/mint.md
+		// TODO: Tamjid - Fix when iris team exposes the annual_provision grpc endpoint!
+		ap := resp.Params.Inflation.MulInt(sdktypes.NewIntWithDecimal(2000000000, 6))
+		ret := sdkutilities.MintAnnualProvision2{
+			MintAnnualProvision: []byte(fmt.Sprintf("{\"annual_provisions\":\"%s\"}", ap.String())),
 		}
 
 		return ret, nil
