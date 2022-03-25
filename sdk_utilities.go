@@ -3,8 +3,8 @@ package sdkservice
 import (
 	"context"
 
-	"github.com/allinbits/sdk-service-meta/gen/log"
-	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
+	"github.com/emerishq/sdk-service-meta/gen/log"
+	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 )
 
 // sdk-utilities service example implementation.
@@ -23,16 +23,14 @@ func NewSdkUtilities(logger *log.Logger, debug bool) sdkutilities.Service {
 }
 
 // Supply implements supply.
-func (s *sdkUtilitiessrvc) Supply(
-	ctx context.Context,
-	p *sdkutilities.SupplyPayload,
-) (res *sdkutilities.Supply2, err error) {
-	ret, err := QuerySupply(p.ChainName, p.Port)
+func (s *sdkUtilitiessrvc) Supply(ctx context.Context, payload *sdkutilities.SupplyPayload) (res *sdkutilities.Supply2, err error) {
+	ret, err := QuerySupply(payload.ChainName, payload.Port, payload.PaginationKey)
 	if err != nil {
 		return nil, err
 	}
 
 	res = &ret
+
 	return
 }
 
@@ -101,6 +99,12 @@ func (s *sdkUtilitiessrvc) MintAnnualProvision(ctx context.Context, payload *sdk
 	return &ret, err
 }
 
+// MintEpochProvisions implements mintEpochProvisions.
+func (s *sdkUtilitiessrvc) MintEpochProvisions(ctx context.Context, payload *sdkutilities.MintEpochProvisionsPayload) (res *sdkutilities.MintEpochProvisions2, err error) {
+	ret, err := MintEpochProvisions(payload.ChainName, payload.Port)
+	return &ret, err
+}
+
 func (s *sdkUtilitiessrvc) AccountNumbers(ctx context.Context, payload *sdkutilities.AccountNumbersPayload) (res *sdkutilities.AccountNumbers2, err error) {
 	ret, err := AccountNumbers(payload.ChainName, payload.Port, *payload.AddresHex, *payload.Bech32Prefix)
 	return &ret, err
@@ -119,4 +123,14 @@ func (s *sdkUtilitiessrvc) EstimateFees(ctx context.Context, payload *sdkutiliti
 func (s *sdkUtilitiessrvc) StakingParams(ctx context.Context, payload *sdkutilities.StakingParamsPayload) (*sdkutilities.StakingParams2, error) {
 	ret, err := StakingParams(payload.ChainName, payload.Port)
 	return &ret, err
+}
+
+func (s *sdkUtilitiessrvc) StakingPool(ctx context.Context, payload *sdkutilities.StakingPoolPayload) (*sdkutilities.StakingPool2, error) {
+	ret, err := StakingPool(payload.ChainName, payload.Port)
+	return &ret, err
+}
+
+func (s *sdkUtilitiessrvc) EmoneyInflation(ctx context.Context, payload *sdkutilities.EmoneyInflationPayload) (*sdkutilities.EmoneyInflation2, error) {
+	// ret, err := EmoneyInflation(payload.ChainName, payload.Port)
+	return &sdkutilities.EmoneyInflation2{}, nil
 }

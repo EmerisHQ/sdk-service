@@ -70,7 +70,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.TENDERBOT_GIT_TOKEN }}
-          repository: allinbits/demeris-backend
+          repository: emerishq/demeris-backend
           event-type: dev-push-sdk-service-${{ matrix.versions }}
           client-payload: |
             {

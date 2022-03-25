@@ -6,29 +6,35 @@ package sdkservice
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
+	junomint "github.com/CosmosContracts/juno/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 	gaia "github.com/cosmos/gaia/v6/app"
+	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
+	irismint "github.com/irisnet/irishub/modules/mint/types"
+	osmomint "github.com/osmosis-labs/osmosis/v7/x/mint/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 )
@@ -54,7 +60,7 @@ func getCodec() codec.Codec {
 	return cdc
 }
 
-func QuerySupply(chainName string, port *int) (sdkutilities.Supply2, error) {
+func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutilities.Supply2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -69,12 +75,29 @@ func QuerySupply(chainName string, port *int) (sdkutilities.Supply2, error) {
 
 	bankQuery := bank.NewQueryClient(grpcConn)
 
-	suppRes, err := bankQuery.TotalSupply(context.Background(), &bank.QueryTotalSupplyRequest{})
+	pagination := &sdkquery.PageRequest{}
+
+	if paginationKey != nil {
+		key, err := base64.StdEncoding.DecodeString(*paginationKey)
+		if err == nil {
+			pagination.Key = key
+		}
+	}
+
+	suppRes, err := bankQuery.TotalSupply(context.Background(), &bank.QueryTotalSupplyRequest{Pagination: pagination})
 	if err != nil {
 		return sdkutilities.Supply2{}, err
 	}
 
 	ret := sdkutilities.Supply2{}
+
+	var nextKey = base64.StdEncoding.EncodeToString(suppRes.Pagination.NextKey)
+	var total = strconv.FormatUint(suppRes.Pagination.Total, 10)
+
+	ret.Pagination = &sdkutilities.Pagination{
+		NextKey: &nextKey,
+		Total:   &total,
+	}
 
 	for _, s := range suppRes.Supply {
 		ret.Coins = append(ret.Coins, &sdkutilities.Coin{
@@ -313,12 +336,46 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 		_ = grpcConn.Close()
 	}()
 
+	// Juno has a custom mint module
+	if chainName == "juno" {
+		mq := junomint.NewQueryClient(grpcConn)
+
+		resp, err := mq.Inflation(context.Background(), &junomint.QueryInflationRequest{})
+		if err != nil {
+			return sdkutilities.MintInflation2{}, err
+		}
+
+		respJSON, err := json.Marshal(resp)
+		if err != nil {
+			return sdkutilities.MintInflation2{}, fmt.Errorf("cannot json marshal response from mint inflation, %w", err)
+		}
+
+		ret := sdkutilities.MintInflation2{
+			MintInflation: respJSON,
+		}
+
+		return ret, nil
+	}
+
+	if strings.EqualFold(chainName, "iris") { // Also allow Iris/IRIS
+		iq := irismint.NewQueryClient(grpcConn)
+		resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
+		if err != nil {
+			return sdkutilities.MintInflation2{}, err
+		}
+
+		ret := sdkutilities.MintInflation2{
+			MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%s\"}", resp.GetParams().Inflation.String())),
+		}
+
+		return ret, nil
+	}
+
 	mq := mint.NewQueryClient(grpcConn)
 
 	resp, err := mq.Inflation(context.Background(), &mint.QueryInflationRequest{})
-
 	if err != nil {
-		return sdkutilities.MintInflation2{}, nil
+		return sdkutilities.MintInflation2{}, err
 	}
 
 	respJSON, err := json.Marshal(resp)
@@ -346,12 +403,55 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 		_ = grpcConn.Close()
 	}()
 
+	// Juno has a custom mint module
+	if chainName == "juno" {
+		mq := junomint.NewQueryClient(grpcConn)
+
+		resp, err := mq.Params(context.Background(), &junomint.QueryParamsRequest{})
+		if err != nil {
+			return sdkutilities.MintParams2{}, err
+		}
+
+		respJSON, err := json.Marshal(resp)
+		if err != nil {
+			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
+		}
+
+		ret := sdkutilities.MintParams2{
+			MintParams: respJSON,
+		}
+
+		return ret, nil
+	}
+
+	if strings.EqualFold(chainName, "iris") { // Also allow Iris/IRIS
+		iq := irismint.NewQueryClient(grpcConn)
+		resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
+		if err != nil {
+			return sdkutilities.MintParams2{}, err
+		}
+
+		respInterface := struct {
+			Params irismint.Params `json:"params"`
+		}{resp.GetParams()}
+		respJSON, err := json.Marshal(respInterface)
+		if err != nil {
+			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
+		}
+
+		ret := sdkutilities.MintParams2{
+			MintParams: respJSON,
+		}
+
+		return ret, nil
+	}
+
 	mq := mint.NewQueryClient(grpcConn)
 
 	resp, err := mq.Params(context.Background(), &mint.QueryParamsRequest{})
 
 	if err != nil {
-		return sdkutilities.MintParams2{}, nil
+		return sdkutilities.MintParams2{}, err
 	}
 
 	respJSON, err := json.Marshal(resp)
@@ -379,12 +479,50 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 		_ = grpcConn.Close()
 	}()
 
+	if chainName == "juno" {
+		mq := junomint.NewQueryClient(grpcConn)
+
+		resp, err := mq.AnnualProvisions(context.Background(), &junomint.QueryAnnualProvisionsRequest{})
+		if err != nil {
+			return sdkutilities.MintAnnualProvision2{}, err
+		}
+
+		respJSON, err := json.Marshal(resp)
+		if err != nil {
+			return sdkutilities.MintAnnualProvision2{}, fmt.Errorf("cannot json marshal response from mint annual provision, %w", err)
+		}
+
+		ret := sdkutilities.MintAnnualProvision2{
+			MintAnnualProvision: respJSON,
+		}
+
+		return ret, nil
+	}
+
+	if strings.EqualFold(chainName, "iris") { // Also allow Iris/IRIS
+		iq := irismint.NewQueryClient(grpcConn)
+		resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
+		if err != nil {
+			return sdkutilities.MintAnnualProvision2{}, err
+		}
+
+		// Welcome to the world of ugly code. How did I come up with this hack you may ask,
+		// 1. The logic is taken from here: https://github.com/irisnet/irishub/blob/71503a902e193aecb8bce08b4a1a7dc0dc20c17c/modules/mint/types/minter.go#L45
+		// 2. inflationBase is taken from here: https://github.com/irisnet/irishub/blob/71503a902e193aecb8bce08b4a1a7dc0dc20c17c/docs/features/mint.md
+		// TODO: Tamjid - Fix when iris team exposes the annual_provision grpc endpoint!
+		ap := resp.Params.Inflation.MulInt(sdktypes.NewIntWithDecimal(2000000000, 6))
+		ret := sdkutilities.MintAnnualProvision2{
+			MintAnnualProvision: []byte(fmt.Sprintf("{\"annual_provisions\":\"%s\"}", ap.String())),
+		}
+
+		return ret, nil
+	}
+
 	mq := mint.NewQueryClient(grpcConn)
 
 	resp, err := mq.AnnualProvisions(context.Background(), &mint.QueryAnnualProvisionsRequest{})
-
 	if err != nil {
-		return sdkutilities.MintAnnualProvision2{}, nil
+		return sdkutilities.MintAnnualProvision2{}, err
 	}
 
 	respJSON, err := json.Marshal(resp)
@@ -394,6 +532,43 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 
 	ret := sdkutilities.MintAnnualProvision2{
 		MintAnnualProvision: respJSON,
+	}
+
+	return ret, nil
+}
+
+func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
+	if chainName != "osmosis" {
+		return sdkutilities.MintEpochProvisions2{}, nil
+	}
+
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.MintEpochProvisions2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	mq := osmomint.NewQueryClient(grpcConn)
+
+	resp, err := mq.EpochProvisions(context.Background(), &osmomint.QueryEpochProvisionsRequest{})
+
+	if err != nil {
+		return sdkutilities.MintEpochProvisions2{}, err
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.MintEpochProvisions2{}, fmt.Errorf("cannot json marshal response from mint epoch provision, %w", err)
+	}
+
+	ret := sdkutilities.MintEpochProvisions2{
+		MintEpochProvisions: respJSON,
 	}
 
 	return ret, nil
@@ -671,5 +846,34 @@ func StakingParams(chainName string, port *int) (sdkutilities.StakingParams2, er
 
 	return sdkutilities.StakingParams2{
 		StakingParams: respJSON,
+	}, nil
+}
+
+func StakingPool(chainName string, port *int) (sdkutilities.StakingPool2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.StakingPool2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	sq := staking.NewQueryClient(grpcConn)
+	resp, err := sq.Pool(context.Background(), &staking.QueryPoolRequest{})
+	if err != nil {
+		return sdkutilities.StakingPool2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.StakingPool2{}, fmt.Errorf("cannot json marshal response from staking pool, %w", err)
+	}
+
+	return sdkutilities.StakingPool2{
+		StakingPool: respJSON,
 	}, nil
 }

@@ -1,4 +1,4 @@
-module github.com/allinbits/sdk-service
+module github.com/emerishq/sdk-service
 
 go 1.16
 
@@ -7,8 +7,7 @@ replace (
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
 
-require goa.design/goa/v3 v3.5.2
-
 require (
-	github.com/allinbits/sdk-service-meta v0.0.0-20220225122854-eb00092170cc
+    goa.design/goa/v3 v3.6.2
+    github.com/emerishq/sdk-service-meta v0.0.0-20220321045904-ff7c06107a05 // indirect
 )

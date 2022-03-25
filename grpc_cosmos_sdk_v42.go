@@ -16,17 +16,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	emoneyinflation "github.com/e-money/em-ledger/x/inflation/types"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	"github.com/tendermint/tendermint/abci/types"
 
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 
 	gaia "github.com/cosmos/gaia/v5/app"
 	"google.golang.org/grpc"
@@ -53,7 +54,7 @@ func getCodec() codec.Marshaler {
 	return cdc
 }
 
-func QuerySupply(chainName string, port *int) (sdkutilities.Supply2, error) {
+func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutilities.Supply2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -74,6 +75,8 @@ func QuerySupply(chainName string, port *int) (sdkutilities.Supply2, error) {
 	}
 
 	ret := sdkutilities.Supply2{}
+
+	ret.Pagination = &sdkutilities.Pagination{}
 
 	for _, s := range suppRes.Supply {
 		ret.Coins = append(ret.Coins, &sdkutilities.Coin{
@@ -301,6 +304,13 @@ func LiquidityPools(chainName string, port *int) (sdkutilities.LiquidityPools2, 
 }
 
 func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, error) {
+	if chainName == "emoney" {
+		// emoney inflation is different from the traditional cosmos sdk inflation,
+		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
+		// rate provided in the endpoint.
+		return emoneyInflation(chainName, port)
+	}
+
 	if port == nil {
 		port = &grpcPort
 	}
@@ -318,7 +328,7 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 	resp, err := mq.Inflation(context.Background(), &mint.QueryInflationRequest{})
 
 	if err != nil {
-		return sdkutilities.MintInflation2{}, nil
+		return sdkutilities.MintInflation2{}, err
 	}
 
 	respJSON, err := json.Marshal(resp)
@@ -334,6 +344,12 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 }
 
 func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
+	if chainName == "emoney" {
+		// emoney inflation is different from the traditional cosmos sdk inflation,
+		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
+		// rate provided in the endpoint.
+		return sdkutilities.MintParams2{}, nil
+	}
 	if port == nil {
 		port = &grpcPort
 	}
@@ -351,7 +367,7 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 	resp, err := mq.Params(context.Background(), &mint.QueryParamsRequest{})
 
 	if err != nil {
-		return sdkutilities.MintParams2{}, nil
+		return sdkutilities.MintParams2{}, err
 	}
 
 	respJSON, err := json.Marshal(resp)
@@ -367,6 +383,12 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 }
 
 func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualProvision2, error) {
+	if chainName == "emoney" {
+		// emoney inflation is different from the traditional cosmos sdk inflation,
+		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
+		// rate provided in the endpoint.
+		return sdkutilities.MintAnnualProvision2{}, nil
+	}
 	if port == nil {
 		port = &grpcPort
 	}
@@ -384,7 +406,7 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 	resp, err := mq.AnnualProvisions(context.Background(), &mint.QueryAnnualProvisionsRequest{})
 
 	if err != nil {
-		return sdkutilities.MintAnnualProvision2{}, nil
+		return sdkutilities.MintAnnualProvision2{}, err
 	}
 
 	respJSON, err := json.Marshal(resp)
@@ -397,6 +419,10 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 	}
 
 	return ret, nil
+}
+
+func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
+	return sdkutilities.MintEpochProvisions2{}, nil
 }
 
 func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp string) (sdkutilities.AccountNumbers2, error) {
@@ -578,4 +604,72 @@ func StakingParams(chainName string, port *int) (sdkutilities.StakingParams2, er
 	return sdkutilities.StakingParams2{
 		StakingParams: respJSON,
 	}, nil
+}
+
+func StakingPool(chainName string, port *int) (sdkutilities.StakingPool2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.StakingPool2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	sq := staking.NewQueryClient(grpcConn)
+	resp, err := sq.Pool(context.Background(), &staking.QueryPoolRequest{})
+	if err != nil {
+		return sdkutilities.StakingPool2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.StakingPool2{}, fmt.Errorf("cannot json marshal response from staking pool, %w", err)
+	}
+
+	return sdkutilities.StakingPool2{
+		StakingPool: respJSON,
+	}, nil
+}
+
+func emoneyInflation(chainName string, port *int) (sdkutilities.MintInflation2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.MintInflation2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	emc := emoneyinflation.NewQueryClient(grpcConn)
+	resp, err := emc.Inflation(context.Background(), &emoneyinflation.QueryInflationRequest{})
+	if err != nil {
+		return sdkutilities.MintInflation2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.MintInflation2{}, fmt.Errorf("cannot json marshal response from emoney inflation, %w", err)
+	}
+
+	var ret sdkutilities.MintInflation2
+	var data sdkutilities.EmoneyInflation2
+	if err := json.Unmarshal(respJSON, &data); err != nil {
+		return sdkutilities.MintInflation2{}, fmt.Errorf("cannot json marshal response from mint inflation, %w", err)
+	}
+
+	for _, v := range data.State.Assets {
+		if v.Denom == "ungm" {
+			ret.MintInflation = []byte(fmt.Sprintf("{\"inflation\":\"%s\"}", v.Inflation))
+		}
+	}
+
+	return ret, nil
 }
