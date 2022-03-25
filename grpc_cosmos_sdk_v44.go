@@ -17,7 +17,6 @@ import (
 	"sync"
 	"time"
 
-	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	junomint "github.com/CosmosContracts/juno/x/mint/types"
