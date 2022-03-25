@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	sdkutilities "github.com/allinbits/sdk-service-meta/gen/sdk_utilities"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	junomint "github.com/CosmosContracts/juno/x/mint/types"
@@ -805,7 +806,8 @@ func computeTax(endpointName string, txBytes []byte) ([]*sdkutilities.Coin, erro
 		return nil, fmt.Errorf("cannot decode terra computeTax response, %w", err)
 	}
 
-	var coins []*sdkutilities.Coin
+	coins := make([]*sdkutilities.Coin, len(rawTax.TaxAmount))
+
 	for _, coin := range rawTax.TaxAmount {
 		coins = append(coins, &sdkutilities.Coin{
 			Denom:  coin.Denom,
