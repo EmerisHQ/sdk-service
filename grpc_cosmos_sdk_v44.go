@@ -46,7 +46,8 @@ var (
 )
 
 const (
-	transferMsgType = "transfer"
+// TODO : this can be used used once relvant code was uncommented
+// transferMsgType = "transfer"
 )
 
 func initCodec() {
