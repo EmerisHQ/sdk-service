@@ -13,7 +13,7 @@ require (
 	github.com/CosmosContracts/juno v1.0.2
 	github.com/cosmos/cosmos-sdk v0.45.1
 	github.com/cosmos/gaia/v6 v6.0.0-rc3
-	github.com/emerishq/sdk-service-meta v0.0.0-20220321130059-95f24d8b493f
+	github.com/emerishq/sdk-service-meta v0.0.0-20220328083553-90cbbcc4202e
 	github.com/gravity-devs/liquidity v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/osmosis-labs/osmosis/v7 v7.0.4
