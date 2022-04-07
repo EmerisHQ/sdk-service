@@ -415,17 +415,12 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 		}
 		reductionPeriodInEpochs := mintParamsResp.GetParams().ReductionPeriodInEpochs
 
-		osmosisStakingDenom := "uosmo"
-		supplyRes, err := SupplyDenom(chainName, port, &osmosisStakingDenom)
+		bankQuery := bank.NewQueryClient(grpcConn)
+		suppRes, err := bankQuery.SupplyOf(context.Background(), &bank.QuerySupplyOfRequest{Denom: mintParamsResp.GetParams().MintDenom})
 		if err != nil {
 			return sdkutilities.MintInflation2{}, err
 		}
-
-		coin, err := sdktypes.ParseCoinNormalized(supplyRes.Coins[0].Amount)
-		if err != nil {
-			return sdkutilities.MintInflation2{}, err
-		}
-		supply := coin.Amount.Uint64()
+		supply := suppRes.GetAmount().Amount.Uint64()
 
 		inflation := (epochProvisions * float64(reductionPeriodInEpochs)) / float64(supply)
 		ret := sdkutilities.MintInflation2{
