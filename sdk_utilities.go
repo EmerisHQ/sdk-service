@@ -34,6 +34,10 @@ func (s *sdkUtilitiessrvc) Supply(ctx context.Context, payload *sdkutilities.Sup
 	return
 }
 
+func (s *sdkUtilitiessrvc) SupplyDenom(ctx context.Context, payload *sdkutilities.SupplyDenomPayload) (res *sdkutilities.Supply2, err error) {
+	return SupplyDenom(payload.ChainName, payload.Port, payload.Denom)
+}
+
 func (s *sdkUtilitiessrvc) QueryTx(ctx context.Context, payload *sdkutilities.QueryTxPayload) (res []byte, err error) {
 	return GetTxFromHash(payload.ChainName, payload.Port, payload.Hash)
 }

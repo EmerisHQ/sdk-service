@@ -112,6 +112,30 @@ func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutiliti
 	return ret, nil
 }
 
+func SupplyDenom(chainName string, port *int, denom *string) (*sdkutilities.Supply2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return &sdkutilities.Supply2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	bankQuery := bank.NewQueryClient(grpcConn)
+	suppRes, err := bankQuery.SupplyOf(context.Background(), &bank.QuerySupplyOfRequest{Denom: *denom})
+	if err != nil {
+		return &sdkutilities.Supply2{}, err
+	}
+
+	ret := sdkutilities.Supply2{Coins: []*sdkutilities.Coin{{Denom: *denom, Amount: suppRes.Amount.String()}}}
+
+	return &ret, nil
+}
+
 func GetTxFromHash(chainName string, port *int, hash string) ([]byte, error) {
 	if port == nil {
 		port = &grpcPort
@@ -374,6 +398,41 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 		return ret, nil
 	}
 
+	if strings.EqualFold(chainName, "osmosis") {
+		oq := osmomint.NewQueryClient(grpcConn)
+
+		// inflation = (epochProvisions * reductionPeriodInEpochs) / supply
+
+		epochProvResp, err := oq.EpochProvisions(context.Background(), &osmomint.QueryEpochProvisionsRequest{})
+		if err != nil {
+			return sdkutilities.MintInflation2{}, err
+		}
+		epochProvisions, err := epochProvResp.EpochProvisions.Float64()
+		if err != nil {
+			return sdkutilities.MintInflation2{}, err
+		}
+
+		mintParamsResp, err := oq.Params(context.Background(), &osmomint.QueryParamsRequest{})
+		if err != nil {
+			return sdkutilities.MintInflation2{}, err
+		}
+		reductionPeriodInEpochs := mintParamsResp.GetParams().ReductionPeriodInEpochs
+
+		bankQuery := bank.NewQueryClient(grpcConn)
+		suppRes, err := bankQuery.SupplyOf(context.Background(), &bank.QuerySupplyOfRequest{Denom: mintParamsResp.GetParams().MintDenom})
+		if err != nil {
+			return sdkutilities.MintInflation2{}, err
+		}
+		supply := suppRes.GetAmount().Amount.Uint64()
+
+		inflation := (epochProvisions * float64(reductionPeriodInEpochs)) / float64(supply)
+		ret := sdkutilities.MintInflation2{
+			MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%f\"}", inflation)),
+		}
+
+		return ret, nil
+	}
+
 	mq := mint.NewQueryClient(grpcConn)
 
 	resp, err := mq.Inflation(context.Background(), &mint.QueryInflationRequest{})
@@ -438,6 +497,25 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 			Params irismint.Params `json:"params"`
 		}{resp.GetParams()}
 		respJSON, err := json.Marshal(respInterface)
+		if err != nil {
+			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
+		}
+
+		ret := sdkutilities.MintParams2{
+			MintParams: respJSON,
+		}
+
+		return ret, nil
+	}
+
+	if strings.EqualFold(chainName, "osmosis") {
+		oq := osmomint.NewQueryClient(grpcConn)
+		resp, err := oq.Params(context.Background(), &osmomint.QueryParamsRequest{})
+		if err != nil {
+			return sdkutilities.MintParams2{}, err
+		}
+
+		respJSON, err := json.Marshal(resp)
 		if err != nil {
 			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
 		}
