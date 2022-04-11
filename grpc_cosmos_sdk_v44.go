@@ -46,7 +46,10 @@ var (
 )
 
 const (
-	transferMsgType = "transfer"
+	// TODO : this can be used used once relvant code was uncommented
+	// transferMsgType = "transfer"
+
+	junoChainName = "juno"
 )
 
 func initCodec() {
@@ -361,7 +364,7 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 	}()
 
 	// Juno has a custom mint module
-	if chainName == "juno" {
+	if chainName == junoChainName {
 		mq := junomint.NewQueryClient(grpcConn)
 
 		resp, err := mq.Inflation(context.Background(), &junomint.QueryInflationRequest{})
@@ -463,7 +466,7 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 	}()
 
 	// Juno has a custom mint module
-	if chainName == "juno" {
+	if chainName == junoChainName {
 		mq := junomint.NewQueryClient(grpcConn)
 
 		resp, err := mq.Params(context.Background(), &junomint.QueryParamsRequest{})
@@ -557,7 +560,7 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 		_ = grpcConn.Close()
 	}()
 
-	if chainName == "juno" {
+	if chainName == junoChainName {
 		mq := junomint.NewQueryClient(grpcConn)
 
 		resp, err := mq.AnnualProvisions(context.Background(), &junomint.QueryAnnualProvisionsRequest{})
@@ -880,7 +883,8 @@ func computeTax(endpointName string, txBytes []byte) ([]*sdkutilities.Coin, erro
 		return nil, fmt.Errorf("cannot decode terra computeTax response, %w", err)
 	}
 
-	var coins []*sdkutilities.Coin
+	coins := make([]*sdkutilities.Coin, len(rawTax.TaxAmount))
+
 	for _, coin := range rawTax.TaxAmount {
 		coins = append(coins, &sdkutilities.Coin{
 			Denom:  coin.Denom,

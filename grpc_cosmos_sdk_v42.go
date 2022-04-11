@@ -40,7 +40,10 @@ var (
 )
 
 const (
-	transferMsgType = "transfer"
+	// TODO : this can be used used once relvant code was uncommented
+	// transferMsgType = "transfer"
+
+	emoneyChainName = "emoney"
 )
 
 func initCodec() {
@@ -328,7 +331,7 @@ func LiquidityPools(chainName string, port *int) (sdkutilities.LiquidityPools2, 
 }
 
 func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, error) {
-	if chainName == "emoney" {
+	if chainName == emoneyChainName {
 		// emoney inflation is different from the traditional cosmos sdk inflation,
 		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
 		// rate provided in the endpoint.
@@ -368,7 +371,7 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 }
 
 func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
-	if chainName == "emoney" {
+	if chainName == emoneyChainName {
 		// emoney inflation is different from the traditional cosmos sdk inflation,
 		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
 		// rate provided in the endpoint.
@@ -407,7 +410,7 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 }
 
 func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualProvision2, error) {
-	if chainName == "emoney" {
+	if chainName == emoneyChainName {
 		// emoney inflation is different from the traditional cosmos sdk inflation,
 		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
 		// rate provided in the endpoint.
