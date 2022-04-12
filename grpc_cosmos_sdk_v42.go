@@ -449,7 +449,9 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 }
 
 func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
-	return sdkutilities.MintEpochProvisions2{}, nil
+	return sdkutilities.MintEpochProvisions2{
+		MintEpochProvisions: nil,
+	}, nil
 }
 
 func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp string) (sdkutilities.AccountNumbers2, error) {
