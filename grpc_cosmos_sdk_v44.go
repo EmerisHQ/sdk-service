@@ -46,7 +46,9 @@ var (
 )
 
 const (
-	transferMsgType  = "transfer"
+	// TODO : this can be used used once relvant code was uncommented
+	// transferMsgType = "transfer"
+
 	junoChainName    = "juno"
 	osmosisChainName = "osmosis"
 	irisChainName    = "iris"
@@ -918,7 +920,8 @@ func computeTax(endpointName string, txBytes []byte) ([]*sdkutilities.Coin, erro
 		return nil, fmt.Errorf("cannot decode terra computeTax response, %w", err)
 	}
 
-	var coins []*sdkutilities.Coin
+	coins := make([]*sdkutilities.Coin, len(rawTax.TaxAmount))
+
 	for _, coin := range rawTax.TaxAmount {
 		coins = append(coins, &sdkutilities.Coin{
 			Denom:  coin.Denom,
