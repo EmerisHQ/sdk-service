@@ -46,7 +46,10 @@ var (
 )
 
 const (
-	transferMsgType = "transfer"
+	transferMsgType  = "transfer"
+	junoChainName    = "juno"
+	osmosisChainName = "osmosis"
+	irisChainName    = "iris"
 )
 
 func initCodec() {
@@ -347,6 +350,12 @@ func LiquidityPools(chainName string, port *int) (sdkutilities.LiquidityPools2, 
 	return ret, nil
 }
 
+var mintFuncsMap = map[string]func(*grpc.ClientConn) (sdkutilities.MintInflation2, error){
+	junoChainName:    junoMintInflation,
+	irisChainName:    irisMintInflation,
+	osmosisChainName: osmosisMintInflation,
+}
+
 func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, error) {
 	if port == nil {
 		port = &grpcPort
@@ -360,76 +369,9 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 		_ = grpcConn.Close()
 	}()
 
-	// Juno has a custom mint module
-	if chainName == "juno" {
-		mq := junomint.NewQueryClient(grpcConn)
-
-		resp, err := mq.Inflation(context.Background(), &junomint.QueryInflationRequest{})
-		if err != nil {
-			return sdkutilities.MintInflation2{}, err
-		}
-
-		respJSON, err := json.Marshal(resp)
-		if err != nil {
-			return sdkutilities.MintInflation2{}, fmt.Errorf("cannot json marshal response from mint inflation, %w", err)
-		}
-
-		ret := sdkutilities.MintInflation2{
-			MintInflation: respJSON,
-		}
-
-		return ret, nil
+	if customMint, ok := mintFuncsMap[strings.ToLower(chainName)]; ok {
+		return customMint(grpcConn)
 	}
-
-	if strings.EqualFold(chainName, "iris") { // Also allow Iris/IRIS
-		iq := irismint.NewQueryClient(grpcConn)
-		resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
-		if err != nil {
-			return sdkutilities.MintInflation2{}, err
-		}
-
-		ret := sdkutilities.MintInflation2{
-			MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%s\"}", resp.GetParams().Inflation.String())),
-		}
-
-		return ret, nil
-	}
-
-	if strings.EqualFold(chainName, "osmosis") {
-		oq := osmomint.NewQueryClient(grpcConn)
-
-		// inflation = (epochProvisions * reductionPeriodInEpochs) / supply
-
-		epochProvResp, err := oq.EpochProvisions(context.Background(), &osmomint.QueryEpochProvisionsRequest{})
-		if err != nil {
-			return sdkutilities.MintInflation2{}, err
-		}
-		epochProvisions, err := epochProvResp.EpochProvisions.Float64()
-		if err != nil {
-			return sdkutilities.MintInflation2{}, err
-		}
-
-		mintParamsResp, err := oq.Params(context.Background(), &osmomint.QueryParamsRequest{})
-		if err != nil {
-			return sdkutilities.MintInflation2{}, err
-		}
-		reductionPeriodInEpochs := mintParamsResp.GetParams().ReductionPeriodInEpochs
-
-		bankQuery := bank.NewQueryClient(grpcConn)
-		suppRes, err := bankQuery.SupplyOf(context.Background(), &bank.QuerySupplyOfRequest{Denom: mintParamsResp.GetParams().MintDenom})
-		if err != nil {
-			return sdkutilities.MintInflation2{}, err
-		}
-		supply := suppRes.GetAmount().Amount.Uint64()
-
-		inflation := (epochProvisions * float64(reductionPeriodInEpochs)) / float64(supply)
-		ret := sdkutilities.MintInflation2{
-			MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%f\"}", inflation)),
-		}
-
-		return ret, nil
-	}
-
 	mq := mint.NewQueryClient(grpcConn)
 
 	resp, err := mq.Inflation(context.Background(), &mint.QueryInflationRequest{})
@@ -449,6 +391,81 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 	return ret, nil
 }
 
+func junoMintInflation(grpcConn *grpc.ClientConn) (sdkutilities.MintInflation2, error) {
+	mq := junomint.NewQueryClient(grpcConn)
+
+	resp, err := mq.Inflation(context.Background(), &junomint.QueryInflationRequest{})
+	if err != nil {
+		return sdkutilities.MintInflation2{}, err
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.MintInflation2{}, fmt.Errorf("cannot json marshal response from mint inflation, %w", err)
+	}
+
+	ret := sdkutilities.MintInflation2{
+		MintInflation: respJSON,
+	}
+
+	return ret, nil
+}
+
+func irisMintInflation(grpcConn *grpc.ClientConn) (sdkutilities.MintInflation2, error) {
+	iq := irismint.NewQueryClient(grpcConn)
+	resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.MintInflation2{}, err
+	}
+
+	ret := sdkutilities.MintInflation2{
+		MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%s\"}", resp.GetParams().Inflation.String())),
+	}
+
+	return ret, nil
+}
+
+func osmosisMintInflation(grpcConn *grpc.ClientConn) (sdkutilities.MintInflation2, error) {
+	oq := osmomint.NewQueryClient(grpcConn)
+
+	// inflation = (epochProvisions * reductionPeriodInEpochs) / supply
+
+	epochProvResp, err := oq.EpochProvisions(context.Background(), &osmomint.QueryEpochProvisionsRequest{})
+	if err != nil {
+		return sdkutilities.MintInflation2{}, err
+	}
+	epochProvisions, err := epochProvResp.EpochProvisions.Float64()
+	if err != nil {
+		return sdkutilities.MintInflation2{}, err
+	}
+
+	mintParamsResp, err := oq.Params(context.Background(), &osmomint.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.MintInflation2{}, err
+	}
+	reductionPeriodInEpochs := mintParamsResp.GetParams().ReductionPeriodInEpochs
+
+	bankQuery := bank.NewQueryClient(grpcConn)
+	suppRes, err := bankQuery.SupplyOf(context.Background(), &bank.QuerySupplyOfRequest{Denom: mintParamsResp.GetParams().MintDenom})
+	if err != nil {
+		return sdkutilities.MintInflation2{}, err
+	}
+	supply := suppRes.GetAmount().Amount.Uint64()
+
+	inflation := (epochProvisions * float64(reductionPeriodInEpochs)) / float64(supply)
+	ret := sdkutilities.MintInflation2{
+		MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%f\"}", inflation)),
+	}
+
+	return ret, nil
+}
+
+var paramsFuncsMap = map[string]func(*grpc.ClientConn) (sdkutilities.MintParams2, error){
+	junoChainName:    junoMintParams,
+	irisChainName:    irisMintParams,
+	osmosisChainName: osmosisMintParams,
+}
+
 func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 	if port == nil {
 		port = &grpcPort
@@ -462,66 +479,8 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 		_ = grpcConn.Close()
 	}()
 
-	// Juno has a custom mint module
-	if chainName == "juno" {
-		mq := junomint.NewQueryClient(grpcConn)
-
-		resp, err := mq.Params(context.Background(), &junomint.QueryParamsRequest{})
-		if err != nil {
-			return sdkutilities.MintParams2{}, err
-		}
-
-		respJSON, err := json.Marshal(resp)
-		if err != nil {
-			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
-		}
-
-		ret := sdkutilities.MintParams2{
-			MintParams: respJSON,
-		}
-
-		return ret, nil
-	}
-
-	if strings.EqualFold(chainName, "iris") { // Also allow Iris/IRIS
-		iq := irismint.NewQueryClient(grpcConn)
-		resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
-		if err != nil {
-			return sdkutilities.MintParams2{}, err
-		}
-
-		respInterface := struct {
-			Params irismint.Params `json:"params"`
-		}{resp.GetParams()}
-		respJSON, err := json.Marshal(respInterface)
-		if err != nil {
-			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
-		}
-
-		ret := sdkutilities.MintParams2{
-			MintParams: respJSON,
-		}
-
-		return ret, nil
-	}
-
-	if strings.EqualFold(chainName, "osmosis") {
-		oq := osmomint.NewQueryClient(grpcConn)
-		resp, err := oq.Params(context.Background(), &osmomint.QueryParamsRequest{})
-		if err != nil {
-			return sdkutilities.MintParams2{}, err
-		}
-
-		respJSON, err := json.Marshal(resp)
-		if err != nil {
-			return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
-		}
-
-		ret := sdkutilities.MintParams2{
-			MintParams: respJSON,
-		}
-
-		return ret, nil
+	if customParams, ok := paramsFuncsMap[strings.ToLower(chainName)]; ok {
+		return customParams(grpcConn)
 	}
 
 	mq := mint.NewQueryClient(grpcConn)
@@ -544,6 +503,73 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 	return ret, nil
 }
 
+func junoMintParams(grpcConn *grpc.ClientConn) (sdkutilities.MintParams2, error) {
+	mq := junomint.NewQueryClient(grpcConn)
+
+	resp, err := mq.Params(context.Background(), &junomint.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.MintParams2{}, err
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
+	}
+
+	ret := sdkutilities.MintParams2{
+		MintParams: respJSON,
+	}
+
+	return ret, nil
+}
+
+func irisMintParams(grpcConn *grpc.ClientConn) (sdkutilities.MintParams2, error) {
+	iq := irismint.NewQueryClient(grpcConn)
+	resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.MintParams2{}, err
+	}
+
+	respInterface := struct {
+		Params irismint.Params `json:"params"`
+	}{resp.GetParams()}
+	respJSON, err := json.Marshal(respInterface)
+	if err != nil {
+		return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
+	}
+
+	ret := sdkutilities.MintParams2{
+		MintParams: respJSON,
+	}
+
+	return ret, nil
+}
+
+func osmosisMintParams(grpcConn *grpc.ClientConn) (sdkutilities.MintParams2, error) {
+	oq := osmomint.NewQueryClient(grpcConn)
+	resp, err := oq.Params(context.Background(), &osmomint.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.MintParams2{}, err
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
+	}
+
+	ret := sdkutilities.MintParams2{
+		MintParams: respJSON,
+	}
+
+	return ret, nil
+}
+
+var annualProvFuncsMap = map[string]func(*grpc.ClientConn) (sdkutilities.MintAnnualProvision2, error){
+	junoChainName:    junoMintAnnualProvisions,
+	irisChainName:    irisMintAnnualProvisions,
+	osmosisChainName: osmosisAnnualProvisions,
+}
+
 func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualProvision2, error) {
 	if port == nil {
 		port = &grpcPort
@@ -557,43 +583,8 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 		_ = grpcConn.Close()
 	}()
 
-	if chainName == "juno" {
-		mq := junomint.NewQueryClient(grpcConn)
-
-		resp, err := mq.AnnualProvisions(context.Background(), &junomint.QueryAnnualProvisionsRequest{})
-		if err != nil {
-			return sdkutilities.MintAnnualProvision2{}, err
-		}
-
-		respJSON, err := json.Marshal(resp)
-		if err != nil {
-			return sdkutilities.MintAnnualProvision2{}, fmt.Errorf("cannot json marshal response from mint annual provision, %w", err)
-		}
-
-		ret := sdkutilities.MintAnnualProvision2{
-			MintAnnualProvision: respJSON,
-		}
-
-		return ret, nil
-	}
-
-	if strings.EqualFold(chainName, "iris") { // Also allow Iris/IRIS
-		iq := irismint.NewQueryClient(grpcConn)
-		resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
-		if err != nil {
-			return sdkutilities.MintAnnualProvision2{}, err
-		}
-
-		// Welcome to the world of ugly code. How did I come up with this hack you may ask,
-		// 1. The logic is taken from here: https://github.com/irisnet/irishub/blob/71503a902e193aecb8bce08b4a1a7dc0dc20c17c/modules/mint/types/minter.go#L45
-		// 2. inflationBase is taken from here: https://github.com/irisnet/irishub/blob/71503a902e193aecb8bce08b4a1a7dc0dc20c17c/docs/features/mint.md
-		// TODO: Tamjid - Fix when iris team exposes the annual_provision grpc endpoint!
-		ap := resp.Params.Inflation.MulInt(sdktypes.NewIntWithDecimal(2000000000, 6))
-		ret := sdkutilities.MintAnnualProvision2{
-			MintAnnualProvision: []byte(fmt.Sprintf("{\"annual_provisions\":\"%s\"}", ap.String())),
-		}
-
-		return ret, nil
+	if customAnnualProv, ok := annualProvFuncsMap[strings.ToLower(chainName)]; ok {
+		return customAnnualProv(grpcConn)
 	}
 
 	mq := mint.NewQueryClient(grpcConn)
@@ -615,9 +606,56 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 	return ret, nil
 }
 
+func junoMintAnnualProvisions(grpcConn *grpc.ClientConn) (sdkutilities.MintAnnualProvision2, error) {
+	mq := junomint.NewQueryClient(grpcConn)
+
+	resp, err := mq.AnnualProvisions(context.Background(), &junomint.QueryAnnualProvisionsRequest{})
+	if err != nil {
+		return sdkutilities.MintAnnualProvision2{}, err
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.MintAnnualProvision2{}, fmt.Errorf("cannot json marshal response from mint annual provision, %w", err)
+	}
+
+	ret := sdkutilities.MintAnnualProvision2{
+		MintAnnualProvision: respJSON,
+	}
+
+	return ret, nil
+}
+
+func irisMintAnnualProvisions(grpcConn *grpc.ClientConn) (sdkutilities.MintAnnualProvision2, error) {
+	iq := irismint.NewQueryClient(grpcConn)
+	resp, err := iq.Params(context.Background(), &irismint.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.MintAnnualProvision2{}, err
+	}
+
+	// Welcome to the world of ugly code. How did I come up with this hack you may ask,
+	// 1. The logic is taken from here: https://github.com/irisnet/irishub/blob/71503a902e193aecb8bce08b4a1a7dc0dc20c17c/modules/mint/types/minter.go#L45
+	// 2. inflationBase is taken from here: https://github.com/irisnet/irishub/blob/71503a902e193aecb8bce08b4a1a7dc0dc20c17c/docs/features/mint.md
+	// TODO: Tamjid - Fix when iris team exposes the annual_provision grpc endpoint!
+	ap := resp.Params.Inflation.MulInt(sdktypes.NewIntWithDecimal(2000000000, 6))
+	ret := sdkutilities.MintAnnualProvision2{
+		MintAnnualProvision: []byte(fmt.Sprintf("{\"annual_provisions\":\"%s\"}", ap.String())),
+	}
+
+	return ret, nil
+}
+
+func osmosisAnnualProvisions(grpcConn *grpc.ClientConn) (sdkutilities.MintAnnualProvision2, error) {
+	return sdkutilities.MintAnnualProvision2{
+		MintAnnualProvision: nil,
+	}, nil
+}
+
 func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
 	if chainName != "osmosis" {
-		return sdkutilities.MintEpochProvisions2{}, nil
+		return sdkutilities.MintEpochProvisions2{
+			MintEpochProvisions: nil,
+		}, nil
 	}
 
 	if port == nil {
