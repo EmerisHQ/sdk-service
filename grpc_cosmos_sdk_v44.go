@@ -436,10 +436,6 @@ func osmosisMintInflation(grpcConn *grpc.ClientConn) (sdkutilities.MintInflation
 	if err != nil {
 		return sdkutilities.MintInflation2{}, err
 	}
-	epochProvisions, err := epochProvResp.EpochProvisions.Float64()
-	if err != nil {
-		return sdkutilities.MintInflation2{}, err
-	}
 
 	mintParamsResp, err := oq.Params(context.Background(), &osmomint.QueryParamsRequest{})
 	if err != nil {
@@ -452,9 +448,9 @@ func osmosisMintInflation(grpcConn *grpc.ClientConn) (sdkutilities.MintInflation
 	if err != nil {
 		return sdkutilities.MintInflation2{}, err
 	}
-	supply := suppRes.GetAmount().Amount.Uint64()
+	supply := suppRes.GetAmount().Amount
 
-	inflation := (epochProvisions * float64(reductionPeriodInEpochs)) / float64(supply)
+	inflation := (epochProvResp.EpochProvisions.MulInt64(reductionPeriodInEpochs)).QuoInt(supply)
 	ret := sdkutilities.MintInflation2{
 		MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%f\"}", inflation)),
 	}
