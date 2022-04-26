@@ -57,7 +57,7 @@ func getCodec() codec.Marshaler {
 	return cdc
 }
 
-func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutilities.Supply2, error) {
+func QuerySupply(ctx context.Context, chainName string, port *int, paginationKey *string) (sdkutilities.Supply2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -72,7 +72,7 @@ func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutiliti
 
 	bankQuery := bank.NewQueryClient(grpcConn)
 
-	suppRes, err := bankQuery.TotalSupply(context.Background(), &bank.QueryTotalSupplyRequest{})
+	suppRes, err := bankQuery.TotalSupply(ctx, &bank.QueryTotalSupplyRequest{})
 	if err != nil {
 		return sdkutilities.Supply2{}, err
 	}
@@ -91,7 +91,7 @@ func QuerySupply(chainName string, port *int, paginationKey *string) (sdkutiliti
 	return ret, nil
 }
 
-func SupplyDenom(chainName string, port *int, denom *string) (*sdkutilities.Supply2, error) {
+func SupplyDenom(ctx context.Context, chainName string, port *int, denom *string) (*sdkutilities.Supply2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -105,7 +105,7 @@ func SupplyDenom(chainName string, port *int, denom *string) (*sdkutilities.Supp
 	}()
 
 	bankQuery := bank.NewQueryClient(grpcConn)
-	suppRes, err := bankQuery.SupplyOf(context.Background(), &bank.QuerySupplyOfRequest{Denom: *denom})
+	suppRes, err := bankQuery.SupplyOf(ctx, &bank.QuerySupplyOfRequest{Denom: *denom})
 	if err != nil {
 		return &sdkutilities.Supply2{}, err
 	}
@@ -115,7 +115,7 @@ func SupplyDenom(chainName string, port *int, denom *string) (*sdkutilities.Supp
 	return &ret, nil
 }
 
-func GetTxFromHash(chainName string, port *int, hash string) ([]byte, error) {
+func GetTxFromHash(ctx context.Context, chainName string, port *int, hash string) ([]byte, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -135,7 +135,7 @@ func GetTxFromHash(chainName string, port *int, hash string) ([]byte, error) {
 
 	txClient := sdktx.NewServiceClient(grpcConn)
 
-	grpcRes, err := txClient.GetTx(context.Background(), &sdktx.GetTxRequest{Hash: hash})
+	grpcRes, err := txClient.GetTx(ctx, &sdktx.GetTxRequest{Hash: hash})
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func GetTxFromHash(chainName string, port *int, hash string) ([]byte, error) {
 	return getCodec().MarshalJSON(grpcRes)
 }
 
-func BroadcastTx(chainName string, port *int, txBytes []byte) (string, error) {
+func BroadcastTx(ctx context.Context, chainName string, port *int, txBytes []byte) (string, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -164,7 +164,7 @@ func BroadcastTx(chainName string, port *int, txBytes []byte) (string, error) {
 	txClient := sdktx.NewServiceClient(grpcConn)
 	// We then call the BroadcastTx method on this client.
 	grpcRes, err := txClient.BroadcastTx(
-		context.Background(),
+		ctx,
 		&sdktx.BroadcastTxRequest{
 			Mode:    sdktx.BroadcastMode_BROADCAST_MODE_SYNC,
 			TxBytes: txBytes, // Proto-binary of the signed transaction, see previous step.
@@ -182,7 +182,7 @@ func BroadcastTx(chainName string, port *int, txBytes []byte) (string, error) {
 	return grpcRes.TxResponse.TxHash, nil
 }
 
-func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
+func TxMetadata(ctx context.Context, txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 	txObj := sdktx.Tx{}
 
 	if err := getCodec().UnmarshalBinaryBare(txBytes, &txObj); err != nil {
@@ -228,7 +228,7 @@ func TxMetadata(txBytes []byte) (sdkutilities.TxMessagesMetadata, error) {
 	return ret, nil
 }
 
-func Block(chainName string, port *int, height int64) (sdkutilities.BlockData, error) {
+func Block(ctx context.Context, chainName string, port *int, height int64) (sdkutilities.BlockData, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -243,7 +243,7 @@ func Block(chainName string, port *int, height int64) (sdkutilities.BlockData, e
 	}()
 
 	sc := tmservice.NewServiceClient(grpcConn)
-	resp, err := sc.GetBlockByHeight(context.Background(), &tmservice.GetBlockByHeightRequest{
+	resp, err := sc.GetBlockByHeight(ctx, &tmservice.GetBlockByHeightRequest{
 		Height: height,
 	})
 
@@ -264,7 +264,7 @@ func Block(chainName string, port *int, height int64) (sdkutilities.BlockData, e
 	return ret, nil
 }
 
-func LiquidityParams(chainName string, port *int) (sdkutilities.LiquidityParams2, error) {
+func LiquidityParams(ctx context.Context, chainName string, port *int) (sdkutilities.LiquidityParams2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -279,7 +279,7 @@ func LiquidityParams(chainName string, port *int) (sdkutilities.LiquidityParams2
 
 	lq := liquidity.NewQueryClient(grpcConn)
 
-	resp, err := lq.Params(context.Background(), &liquidity.QueryParamsRequest{})
+	resp, err := lq.Params(ctx, &liquidity.QueryParamsRequest{})
 
 	if err != nil {
 		return sdkutilities.LiquidityParams2{}, nil
@@ -297,7 +297,7 @@ func LiquidityParams(chainName string, port *int) (sdkutilities.LiquidityParams2
 	return ret, nil
 }
 
-func LiquidityPools(chainName string, port *int) (sdkutilities.LiquidityPools2, error) {
+func LiquidityPools(ctx context.Context, chainName string, port *int) (sdkutilities.LiquidityPools2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -312,7 +312,7 @@ func LiquidityPools(chainName string, port *int) (sdkutilities.LiquidityPools2, 
 
 	lq := liquidity.NewQueryClient(grpcConn)
 
-	resp, err := lq.LiquidityPools(context.Background(), &liquidity.QueryLiquidityPoolsRequest{})
+	resp, err := lq.LiquidityPools(ctx, &liquidity.QueryLiquidityPoolsRequest{})
 
 	if err != nil {
 		return sdkutilities.LiquidityPools2{}, nil
@@ -330,12 +330,12 @@ func LiquidityPools(chainName string, port *int) (sdkutilities.LiquidityPools2, 
 	return ret, nil
 }
 
-func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, error) {
+func MintInflation(ctx context.Context, chainName string, port *int) (sdkutilities.MintInflation2, error) {
 	if chainName == emoneyChainName {
 		// emoney inflation is different from the traditional cosmos sdk inflation,
 		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
 		// rate provided in the endpoint.
-		return emoneyInflation(chainName, port)
+		return emoneyInflation(ctx, chainName, port)
 	}
 
 	if port == nil {
@@ -352,7 +352,7 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 
 	mq := mint.NewQueryClient(grpcConn)
 
-	resp, err := mq.Inflation(context.Background(), &mint.QueryInflationRequest{})
+	resp, err := mq.Inflation(ctx, &mint.QueryInflationRequest{})
 
 	if err != nil {
 		return sdkutilities.MintInflation2{}, err
@@ -370,7 +370,7 @@ func MintInflation(chainName string, port *int) (sdkutilities.MintInflation2, er
 	return ret, nil
 }
 
-func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
+func MintParams(ctx context.Context, chainName string, port *int) (sdkutilities.MintParams2, error) {
 	if chainName == emoneyChainName {
 		// emoney inflation is different from the traditional cosmos sdk inflation,
 		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
@@ -391,7 +391,7 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 
 	mq := mint.NewQueryClient(grpcConn)
 
-	resp, err := mq.Params(context.Background(), &mint.QueryParamsRequest{})
+	resp, err := mq.Params(ctx, &mint.QueryParamsRequest{})
 
 	if err != nil {
 		return sdkutilities.MintParams2{}, err
@@ -409,7 +409,7 @@ func MintParams(chainName string, port *int) (sdkutilities.MintParams2, error) {
 	return ret, nil
 }
 
-func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualProvision2, error) {
+func MintAnnualProvision(ctx context.Context, chainName string, port *int) (sdkutilities.MintAnnualProvision2, error) {
 	if chainName == emoneyChainName {
 		// emoney inflation is different from the traditional cosmos sdk inflation,
 		// and does not have an annualprovisions endpoint. Instead it uses a flat inflation
@@ -430,7 +430,7 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 
 	mq := mint.NewQueryClient(grpcConn)
 
-	resp, err := mq.AnnualProvisions(context.Background(), &mint.QueryAnnualProvisionsRequest{})
+	resp, err := mq.AnnualProvisions(ctx, &mint.QueryAnnualProvisionsRequest{})
 
 	if err != nil {
 		return sdkutilities.MintAnnualProvision2{}, err
@@ -448,13 +448,13 @@ func MintAnnualProvision(chainName string, port *int) (sdkutilities.MintAnnualPr
 	return ret, nil
 }
 
-func MintEpochProvisions(chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
+func MintEpochProvisions(ctx context.Context, chainName string, port *int) (sdkutilities.MintEpochProvisions2, error) {
 	return sdkutilities.MintEpochProvisions2{
 		MintEpochProvisions: nil,
 	}, nil
 }
 
-func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp string) (sdkutilities.AccountNumbers2, error) {
+func AccountNumbers(ctx context.Context, chainName string, port *int, hexAddress string, bech32hrp string) (sdkutilities.AccountNumbers2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -479,7 +479,7 @@ func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp st
 
 	authQuery := auth.NewQueryClient(grpcConn)
 
-	res, err := authQuery.Account(context.Background(), &auth.QueryAccountRequest{
+	res, err := authQuery.Account(ctx, &auth.QueryAccountRequest{
 		Address: addr,
 	})
 
@@ -511,7 +511,7 @@ func AccountNumbers(chainName string, port *int, hexAddress string, bech32hrp st
 	return ret, nil
 }
 
-func DelegatorRewards(chainName string, port *int, hexAddress string, bech32hrp string) (sdkutilities.DelegatorRewards2, error) {
+func DelegatorRewards(ctx context.Context, chainName string, port *int, hexAddress string, bech32hrp string) (sdkutilities.DelegatorRewards2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -536,7 +536,7 @@ func DelegatorRewards(chainName string, port *int, hexAddress string, bech32hrp 
 
 	distributionQuery := distribution.NewQueryClient(grpcConn)
 
-	res, err := distributionQuery.DelegationTotalRewards(context.Background(), &distribution.QueryDelegationTotalRewardsRequest{
+	res, err := distributionQuery.DelegationTotalRewards(ctx, &distribution.QueryDelegationTotalRewardsRequest{
 		DelegatorAddress: addr,
 	})
 
@@ -565,7 +565,7 @@ func DelegatorRewards(chainName string, port *int, hexAddress string, bech32hrp 
 	return ret, nil
 }
 
-func FeeEstimate(chainName string, port *int, txBytes []byte) (sdkutilities.Simulation, error) {
+func FeeEstimate(ctx context.Context, chainName string, port *int, txBytes []byte) (sdkutilities.Simulation, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -585,7 +585,7 @@ func FeeEstimate(chainName string, port *int, txBytes []byte) (sdkutilities.Simu
 	}
 
 	txSvcClient := sdktx.NewServiceClient(grpcConn)
-	simRes, err := txSvcClient.Simulate(context.Background(), &sdktx.SimulateRequest{
+	simRes, err := txSvcClient.Simulate(ctx, &sdktx.SimulateRequest{
 		Tx: txObj,
 	})
 	if err != nil {
@@ -606,7 +606,7 @@ func sdkDecCoinToUtilCoin(c sdktypes.DecCoin) *sdkutilities.Coin {
 	}
 }
 
-func StakingParams(chainName string, port *int) (sdkutilities.StakingParams2, error) {
+func StakingParams(ctx context.Context, chainName string, port *int) (sdkutilities.StakingParams2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -620,7 +620,7 @@ func StakingParams(chainName string, port *int) (sdkutilities.StakingParams2, er
 	}()
 
 	sq := staking.NewQueryClient(grpcConn)
-	resp, err := sq.Params(context.Background(), &staking.QueryParamsRequest{})
+	resp, err := sq.Params(ctx, &staking.QueryParamsRequest{})
 	if err != nil {
 		return sdkutilities.StakingParams2{}, nil
 	}
@@ -635,7 +635,7 @@ func StakingParams(chainName string, port *int) (sdkutilities.StakingParams2, er
 	}, nil
 }
 
-func StakingPool(chainName string, port *int) (sdkutilities.StakingPool2, error) {
+func StakingPool(ctx context.Context, chainName string, port *int) (sdkutilities.StakingPool2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -649,7 +649,7 @@ func StakingPool(chainName string, port *int) (sdkutilities.StakingPool2, error)
 	}()
 
 	sq := staking.NewQueryClient(grpcConn)
-	resp, err := sq.Pool(context.Background(), &staking.QueryPoolRequest{})
+	resp, err := sq.Pool(ctx, &staking.QueryPoolRequest{})
 	if err != nil {
 		return sdkutilities.StakingPool2{}, nil
 	}
@@ -664,7 +664,7 @@ func StakingPool(chainName string, port *int) (sdkutilities.StakingPool2, error)
 	}, nil
 }
 
-func emoneyInflation(chainName string, port *int) (sdkutilities.MintInflation2, error) {
+func emoneyInflation(ctx context.Context, chainName string, port *int) (sdkutilities.MintInflation2, error) {
 	if port == nil {
 		port = &grpcPort
 	}
@@ -678,7 +678,7 @@ func emoneyInflation(chainName string, port *int) (sdkutilities.MintInflation2, 
 	}()
 
 	emc := emoneyinflation.NewQueryClient(grpcConn)
-	resp, err := emc.Inflation(context.Background(), &emoneyinflation.QueryInflationRequest{})
+	resp, err := emc.Inflation(ctx, &emoneyinflation.QueryInflationRequest{})
 	if err != nil {
 		return sdkutilities.MintInflation2{}, nil
 	}
