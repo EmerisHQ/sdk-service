@@ -9,5 +9,6 @@ replace (
 
 require (
 	github.com/emerishq/sdk-service-meta v0.0.0-20220331063503-f6dcfa168e93
+	github.com/tendermint/budget v1.1.1 // indirect
 	goa.design/goa/v3 v3.6.2
 )
