@@ -733,5 +733,5 @@ func DistributionParams(ctx context.Context, chainName string, port *int) (sdkut
 }
 
 func BudgetParams(ctx context.Context, chainName string, port *int) (sdkutilities.BudgetParams2, error) {
-	return sdkutilities.BudgetParams2{}, fmt.Errorf("Cannont get budget params from sdk")
+	return sdkutilities.BudgetParams2{}, fmt.Errorf("cannot get budget params from sdk")
 }
