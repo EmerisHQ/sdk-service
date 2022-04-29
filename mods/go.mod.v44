@@ -20,6 +20,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/irisnet/irishub v1.2.0
 	github.com/osmosis-labs/osmosis/v7 v7.0.4
+	github.com/tendermint/budget v1.1.1 
 	github.com/tendermint/tendermint v0.34.15
 	go.uber.org/zap v1.21.0
 	google.golang.org/grpc v1.45.0
