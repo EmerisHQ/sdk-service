@@ -14,6 +14,7 @@ require (
 	github.com/CosmosContracts/juno v1.0.2
 	github.com/cosmos/cosmos-sdk v0.45.1
 	github.com/cosmos/gaia/v6 v6.0.0-rc3
+	github.com/crescent-network/crescent v1.1.0
 	github.com/emerishq/sdk-service-meta v0.0.0-20220429062533-d6be380e1538
 	github.com/gravity-devs/liquidity v1.5.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
