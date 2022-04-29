@@ -29,7 +29,7 @@ import (
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 
-	gaia "github.com/cosmos/gaia/v5/app"
+	gaia "github.com/cosmos/gaia/v3/app"
 	"google.golang.org/grpc"
 )
 
@@ -733,30 +733,5 @@ func DistributionParams(ctx context.Context, chainName string, port *int) (sdkut
 }
 
 func BudgetParams(ctx context.Context, chainName string, port *int) (sdkutilities.BudgetParams2, error) {
-	if port == nil {
-		port = &grpcPort
-	}
-	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
-	if err != nil {
-		return sdkutilities.BudgetParams2{}, err
-	}
-
-	defer func() {
-		_ = grpcConn.Close()
-	}()
-
-	bc := budget.NewQueryClient(grpcConn)
-	resp, err := bc.Params(ctx, &budget.QueryParamsRequest{})
-	if err != nil {
-		return sdkutilities.BudgetParams2{}, nil
-	}
-
-	respJSON, err := json.Marshal(resp)
-	if err != nil {
-		return sdkutilities.BudgetParams2{}, fmt.Errorf("cannot json marshal response from budget params, %w", err)
-	}
-
-	return sdkutilities.BudgetParams2{
-		BudgetParams: respJSON,
-	}, nil
+	return sdkutilities.BudgetParams2{}, fmt.Errorf("Cannont get budget params from sdk")
 }
