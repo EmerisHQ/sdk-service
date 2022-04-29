@@ -702,3 +702,61 @@ func emoneyInflation(ctx context.Context, chainName string, port *int) (sdkutili
 
 	return ret, nil
 }
+
+func DistributionParams(ctx context.Context, chainName string, port *int) (sdkutilities.DistributionParams2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.DistributionParams2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	dc := distribution.NewQueryClient(grpcConn)
+	resp, err := dc.Params(ctx, &distribution.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.DistributionParams2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.DistributionParams2{}, fmt.Errorf("cannot json marshal response from distribution params, %w", err)
+	}
+
+	return sdkutilities.DistributionParams2{
+		DistributionParams: respJSON,
+	}, nil
+}
+
+func BudgetParams(ctx context.Context, chainName string, port *int) (sdkutilities.BudgetParams2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.BudgetParams2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	bc := budget.NewQueryClient(grpcConn)
+	resp, err := bc.Params(ctx, &budget.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.BudgetParams2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.BudgetParams2{}, fmt.Errorf("cannot json marshal response from budget params, %w", err)
+	}
+
+	return sdkutilities.BudgetParams2{
+		BudgetParams: respJSON,
+	}, nil
+}
