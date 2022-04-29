@@ -31,6 +31,7 @@ import (
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 	gaia "github.com/cosmos/gaia/v6/app"
+	crescentmint "github.com/crescent-network/crescent/x/mint/types"
 	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	irismint "github.com/irisnet/irishub/modules/mint/types"
@@ -49,9 +50,10 @@ const (
 	// TODO : this can be used used once relvant code was uncommented
 	// transferMsgType = "transfer"
 
-	junoChainName    = "juno"
-	osmosisChainName = "osmosis"
-	irisChainName    = "iris"
+	junoChainName     = "juno"
+	osmosisChainName  = "osmosis"
+	irisChainName     = "iris"
+	crescentChainName = "crecsent"
 )
 
 func initCodec() {
@@ -459,9 +461,10 @@ func osmosisMintInflation(ctx context.Context, grpcConn *grpc.ClientConn) (sdkut
 }
 
 var paramsFuncsMap = map[string]func(context.Context, *grpc.ClientConn) (sdkutilities.MintParams2, error){
-	junoChainName:    junoMintParams,
-	irisChainName:    irisMintParams,
-	osmosisChainName: osmosisMintParams,
+	junoChainName:     junoMintParams,
+	irisChainName:     irisMintParams,
+	osmosisChainName:  osmosisMintParams,
+	crescentChainName: crescentMintParams,
 }
 
 func MintParams(ctx context.Context, chainName string, port *int) (sdkutilities.MintParams2, error) {
@@ -546,6 +549,25 @@ func irisMintParams(ctx context.Context, grpcConn *grpc.ClientConn) (sdkutilitie
 func osmosisMintParams(ctx context.Context, grpcConn *grpc.ClientConn) (sdkutilities.MintParams2, error) {
 	oq := osmomint.NewQueryClient(grpcConn)
 	resp, err := oq.Params(ctx, &osmomint.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.MintParams2{}, err
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.MintParams2{}, fmt.Errorf("cannot json marshal response from mint params, %w", err)
+	}
+
+	ret := sdkutilities.MintParams2{
+		MintParams: respJSON,
+	}
+
+	return ret, nil
+}
+
+func crescentMintParams(ctx context.Context, grpcConn *grpc.ClientConn) (sdkutilities.MintParams2, error) {
+	cq := crescentmint.NewQueryClient(grpcConn)
+	resp, err := cq.Params(ctx, &crescentmint.QueryParamsRequest{})
 	if err != nil {
 		return sdkutilities.MintParams2{}, err
 	}
