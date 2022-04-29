@@ -53,7 +53,7 @@ const (
 	junoChainName     = "juno"
 	osmosisChainName  = "osmosis"
 	irisChainName     = "iris"
-	crescentChainName = "crecsent"
+	crescentChainName = "crescent"
 )
 
 func initCodec() {
