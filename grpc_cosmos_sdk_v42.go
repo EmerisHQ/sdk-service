@@ -29,7 +29,7 @@ import (
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 
-	gaia "github.com/cosmos/gaia/v5/app"
+	gaia "github.com/cosmos/gaia/v3/app"
 	"google.golang.org/grpc"
 )
 
@@ -701,4 +701,37 @@ func emoneyInflation(ctx context.Context, chainName string, port *int) (sdkutili
 	}
 
 	return ret, nil
+}
+
+func DistributionParams(ctx context.Context, chainName string, port *int) (sdkutilities.DistributionParams2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.DistributionParams2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	dc := distribution.NewQueryClient(grpcConn)
+	resp, err := dc.Params(ctx, &distribution.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.DistributionParams2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.DistributionParams2{}, fmt.Errorf("cannot json marshal response from distribution params, %w", err)
+	}
+
+	return sdkutilities.DistributionParams2{
+		DistributionParams: respJSON,
+	}, nil
+}
+
+func BudgetParams(ctx context.Context, chainName string, port *int) (sdkutilities.BudgetParams2, error) {
+	return sdkutilities.BudgetParams2{}, fmt.Errorf("cannot get budget params from sdk")
 }
