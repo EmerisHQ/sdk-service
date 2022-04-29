@@ -8,19 +8,20 @@ replace (
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
 
-require goa.design/goa/v3 v3.6.2
+require goa.design/goa/v3 v3.7.2
 
 require (
 	github.com/CosmosContracts/juno v1.0.2
 	github.com/cosmos/cosmos-sdk v0.45.1
 	github.com/cosmos/gaia/v6 v6.0.0-rc3
 	github.com/crescent-network/crescent v1.1.0
-	github.com/emerishq/sdk-service-meta v0.0.0-20220331063503-f6dcfa168e93
-	github.com/gravity-devs/liquidity v1.4.2
+	github.com/emerishq/sdk-service-meta v0.0.0-20220429062533-d6be380e1538
+	github.com/gravity-devs/liquidity v1.5.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/irisnet/irishub v1.2.0
 	github.com/osmosis-labs/osmosis/v7 v7.0.4
+	github.com/tendermint/budget v1.1.1
 	github.com/tendermint/tendermint v0.34.15
 	go.uber.org/zap v1.21.0
-	google.golang.org/grpc v1.45.0
+	google.golang.org/grpc v1.46.0
 )

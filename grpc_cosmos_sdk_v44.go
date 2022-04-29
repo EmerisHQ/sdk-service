@@ -17,8 +17,6 @@ import (
 	"sync"
 	"time"
 
-	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	junomint "github.com/CosmosContracts/juno/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -30,12 +28,14 @@ import (
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distribution "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
+	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	gaia "github.com/cosmos/gaia/v6/app"
 	crescentmint "github.com/crescent-network/crescent/x/mint/types"
 	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	irismint "github.com/irisnet/irishub/modules/mint/types"
 	osmomint "github.com/osmosis-labs/osmosis/v7/x/mint/types"
+	budget "github.com/tendermint/budget/x/budget/types"
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 )
@@ -1012,5 +1012,63 @@ func StakingPool(ctx context.Context, chainName string, port *int) (sdkutilities
 
 	return sdkutilities.StakingPool2{
 		StakingPool: respJSON,
+	}, nil
+}
+
+func DistributionParams(ctx context.Context, chainName string, port *int) (sdkutilities.DistributionParams2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.DistributionParams2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	dc := distribution.NewQueryClient(grpcConn)
+	resp, err := dc.Params(ctx, &distribution.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.DistributionParams2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.DistributionParams2{}, fmt.Errorf("cannot json marshal response from distribution params, %w", err)
+	}
+
+	return sdkutilities.DistributionParams2{
+		DistributionParams: respJSON,
+	}, nil
+}
+
+func BudgetParams(ctx context.Context, chainName string, port *int) (sdkutilities.BudgetParams2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.BudgetParams2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	bc := budget.NewQueryClient(grpcConn)
+	resp, err := bc.Params(ctx, &budget.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.BudgetParams2{}, nil
+	}
+
+	respJSON, err := json.Marshal(resp)
+	if err != nil {
+		return sdkutilities.BudgetParams2{}, fmt.Errorf("cannot json marshal response from budget params, %w", err)
+	}
+
+	return sdkutilities.BudgetParams2{
+		BudgetParams: respJSON,
 	}, nil
 }

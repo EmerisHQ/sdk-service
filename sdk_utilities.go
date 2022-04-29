@@ -139,3 +139,13 @@ func (s *sdkUtilitiessrvc) EmoneyInflation(ctx context.Context, payload *sdkutil
 	// ret, err := EmoneyInflation(payload.ChainName, payload.Port)
 	return &sdkutilities.EmoneyInflation2{}, nil
 }
+
+func (s *sdkUtilitiessrvc) BudgetParams(ctx context.Context, payload *sdkutilities.BudgetParamsPayload) (*sdkutilities.BudgetParams2, error) {
+	ret, err := BudgetParams(ctx, payload.ChainName, payload.Port)
+	return &ret, err
+}
+
+func (s *sdkUtilitiessrvc) DistributionParams(ctx context.Context, payload *sdkutilities.DistributionParamsPayload) (*sdkutilities.DistributionParams2, error) {
+	ret, err := DistributionParams(ctx, payload.ChainName, payload.Port)
+	return &ret, err
+}
