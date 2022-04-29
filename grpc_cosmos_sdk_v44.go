@@ -355,9 +355,10 @@ func LiquidityPools(ctx context.Context, chainName string, port *int) (sdkutilit
 }
 
 var mintFuncsMap = map[string]func(context.Context, *grpc.ClientConn) (sdkutilities.MintInflation2, error){
-	junoChainName:    junoMintInflation,
-	irisChainName:    irisMintInflation,
-	osmosisChainName: osmosisMintInflation,
+	junoChainName:     junoMintInflation,
+	irisChainName:     irisMintInflation,
+	osmosisChainName:  osmosisMintInflation,
+	crescentChainName: crescentMintInflation,
 }
 
 func MintInflation(ctx context.Context, chainName string, port *int) (sdkutilities.MintInflation2, error) {
@@ -453,6 +454,38 @@ func osmosisMintInflation(ctx context.Context, grpcConn *grpc.ClientConn) (sdkut
 	supply := suppRes.GetAmount().Amount
 
 	inflation := (epochProvResp.EpochProvisions.MulInt64(reductionPeriodInEpochs)).QuoInt(supply)
+	ret := sdkutilities.MintInflation2{
+		MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%f\"}", inflation)),
+	}
+
+	return ret, nil
+}
+
+func crescentMintInflation(ctx context.Context, grpcConn *grpc.ClientConn) (sdkutilities.MintInflation2, error) {
+	cq := crescentmint.NewQueryClient(grpcConn)
+
+	// inflation=current Inflation amount/total minted before schedule
+
+	mintParamsResp, err := cq.Params(ctx, &crescentmint.QueryParamsRequest{})
+	if err != nil {
+		return sdkutilities.MintInflation2{}, err
+	}
+
+	now := time.Now()
+	genesisSupply := sdktypes.NewInt(200000000000000)
+	totalMintedBeforeSchedule := genesisSupply
+	var currentInflationAmount sdktypes.Int
+
+	for _, schedule := range mintParamsResp.GetParams().InflationSchedules {
+		if schedule.StartTime.Before(now) && schedule.EndTime.Before(now) {
+			totalMintedBeforeSchedule.Add(schedule.Amount)
+		} else if schedule.StartTime.Before(now) && schedule.EndTime.After(now) {
+			currentInflationAmount = schedule.Amount
+		}
+	}
+
+	inflation := currentInflationAmount.Quo(totalMintedBeforeSchedule)
+
 	ret := sdkutilities.MintInflation2{
 		MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%f\"}", inflation)),
 	}
