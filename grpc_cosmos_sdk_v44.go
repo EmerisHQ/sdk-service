@@ -484,7 +484,7 @@ func crescentMintInflation(ctx context.Context, grpcConn *grpc.ClientConn) (sdku
 		}
 	}
 
-	inflation := currentInflationAmount.Quo(totalMintedBeforeSchedule)
+	inflation := sdktypes.NewDecFromInt(currentInflationAmount).QuoInt(totalMintedBeforeSchedule)
 
 	ret := sdkutilities.MintInflation2{
 		MintInflation: []byte(fmt.Sprintf("{\"inflation\":\"%f\"}", inflation)),
