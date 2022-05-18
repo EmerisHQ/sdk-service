@@ -7,14 +7,14 @@ replace (
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
 
-require goa.design/goa/v3 v3.7.2
+require goa.design/goa/v3 v3.7.3
 
 require (
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/cosmos/cosmos-sdk v0.42.10
 	github.com/cosmos/gaia/v3 v3.0.1
 	github.com/e-money/em-ledger v1.1.4
-	github.com/emerishq/sdk-service-meta v0.0.0-20220429062533-d6be380e1538
+	github.com/emerishq/sdk-service-meta v0.0.0-20220518012008-7dab571f480a
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/gravity-devs/liquidity v1.2.9
