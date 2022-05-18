@@ -22,7 +22,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	query "github.com/cosmos/cosmos-sdk/types/query"
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -1120,15 +1119,15 @@ func OsmoPools(ctx context.Context, chainName string, port *int) (sdkutilities.O
 
 	gq := gamm.NewQueryClient(grpcConn)
 
-	numpoolsres, err := gq.NumPools(context.Background(), &gamm.QueryNumPoolsRequest{})
+	numpoolsres, err := gq.NumPools(ctx, &gamm.QueryNumPoolsRequest{})
 	if err != nil {
 		return sdkutilities.OsmoPools2{}, fmt.Errorf("cannot get number of pools, %w", err)
 	}
 
 	fmt.Println(numpoolsres.NumPools)
 
-	res, err := gq.Pools(context.Background(), &gamm.QueryPoolsRequest{
-		Pagination: &query.PageRequest{
+	res, err := gq.Pools(ctx, &gamm.QueryPoolsRequest{
+		Pagination: &sdkquery.PageRequest{
 			Limit: numpoolsres.NumPools,
 		},
 	})
