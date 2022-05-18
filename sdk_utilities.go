@@ -149,3 +149,8 @@ func (s *sdkUtilitiessrvc) DistributionParams(ctx context.Context, payload *sdku
 	ret, err := DistributionParams(ctx, payload.ChainName, payload.Port)
 	return &ret, err
 }
+
+func (s *sdkUtilitiessrvc) OsmoPools(ctx context.Context, payload *sdkutilities.OsmoPoolsPayload) (*sdkutilities.OsmoPools2, error) {
+	ret, err := OsmoPools(ctx, payload.ChainName, payload.Port)
+	return &ret, err
+}

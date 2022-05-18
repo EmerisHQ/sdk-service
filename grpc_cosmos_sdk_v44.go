@@ -22,6 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
+	query "github.com/cosmos/cosmos-sdk/types/query"
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 	sdktx "github.com/cosmos/cosmos-sdk/types/tx"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -34,6 +35,7 @@ import (
 	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
 	irismint "github.com/irisnet/irishub/modules/mint/types"
+	gamm "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 	osmomint "github.com/osmosis-labs/osmosis/v7/x/mint/types"
 	budget "github.com/tendermint/budget/x/budget/types"
 	"github.com/tendermint/tendermint/abci/types"
@@ -1103,5 +1105,43 @@ func BudgetParams(ctx context.Context, chainName string, port *int) (sdkutilitie
 
 	return sdkutilities.BudgetParams2{
 		BudgetParams: respJSON,
+	}, nil
+}
+
+func OsmoPools(ctx context.Context, chainName string, port *int) (sdkutilities.OsmoPools2, error) {
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.OsmoPools2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	gq := gamm.NewQueryClient(grpcConn)
+
+	numpoolsres, err := gq.NumPools(context.Background(), &gamm.QueryNumPoolsRequest{})
+	if err != nil {
+		return sdkutilities.OsmoPools2{}, fmt.Errorf("cannot get number of pools, %w", err)
+	}
+
+	fmt.Println(numpoolsres.NumPools)
+
+	res, err := gq.Pools(context.Background(), &gamm.QueryPoolsRequest{
+		Pagination: &query.PageRequest{
+			Limit: numpoolsres.NumPools,
+		},
+	})
+	if err != nil {
+		return sdkutilities.OsmoPools2{}, fmt.Errorf("cannot get pools, %w", err)
+	}
+
+	out, err := cdc.MarshalJSON(res)
+	if err != nil {
+		return sdkutilities.OsmoPools2{}, fmt.Errorf("failed to marshal response, %w", err)
+	}
+
+	return sdkutilities.OsmoPools2{
+		OsmoPools: out,
 	}, nil
 }
