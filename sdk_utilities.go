@@ -154,3 +154,8 @@ func (s *sdkUtilitiessrvc) OsmoPools(ctx context.Context, payload *sdkutilities.
 	ret, err := OsmoPools(ctx, payload.ChainName, payload.Port)
 	return &ret, err
 }
+
+func (s *sdkUtilitiessrvc) CrescentPools(ctx context.Context, payload *sdkutilities.CrescentPoolsPayload) (*sdkutilities.CrescentPools2, error) {
+	ret, err := CrescentPools(ctx, payload.ChainName, payload.Port)
+	return &ret, err
+}

@@ -739,3 +739,7 @@ func BudgetParams(ctx context.Context, chainName string, port *int) (sdkutilitie
 func OsmoPools(ctx context.Context, chainName string, port *int) (sdkutilities.OsmoPools2, error) {
 	return sdkutilities.OsmoPools2{}, fmt.Errorf("cannot get osmosis pools - incorrect sdk version")
 }
+
+func CrescentPools(ctx context.Context, chainName string, port *int) (sdkutilities.CrescentPools2, error) {
+	return sdkutilities.CrescentPools2{}, fmt.Errorf("incorrect sdk version")
+}
