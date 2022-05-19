@@ -30,6 +30,7 @@ import (
 	mint "github.com/cosmos/cosmos-sdk/x/mint/types"
 	staking "github.com/cosmos/cosmos-sdk/x/staking/types"
 	gaia "github.com/cosmos/gaia/v6/app"
+	liquidity2 "github.com/crescent-network/crescent/x/liquidity/types"
 	crescentmint "github.com/crescent-network/crescent/x/mint/types"
 	sdkutilities "github.com/emerishq/sdk-service-meta/gen/sdk_utilities"
 	liquidity "github.com/gravity-devs/liquidity/x/liquidity/types"
@@ -1103,5 +1104,36 @@ func BudgetParams(ctx context.Context, chainName string, port *int) (sdkutilitie
 
 	return sdkutilities.BudgetParams2{
 		BudgetParams: respJSON,
+	}, nil
+}
+
+func CrescentPools(ctx context.Context, chainName string, port *int) (sdkutilities.CrescentPools2, error) {
+	if port == nil {
+		port = &grpcPort
+	}
+	grpcConn, err := grpc.Dial(fmt.Sprintf("%s:%d", chainName, *port), grpc.WithInsecure())
+	if err != nil {
+		return sdkutilities.CrescentPools2{}, err
+	}
+
+	defer func() {
+		_ = grpcConn.Close()
+	}()
+
+	lq := liquidity2.NewQueryClient(grpcConn)
+
+	res, err := lq.Pools(context.Background(), &liquidity2.QueryPoolsRequest{})
+	if err != nil {
+		return sdkutilities.CrescentPools2{}, fmt.Errorf("cannot get response from node, %w", err)
+	}
+
+	pools := res.GetPools()
+	bz, err := json.Marshal(pools)
+	if err != nil {
+		return sdkutilities.CrescentPools2{}, fmt.Errorf("cannot json marshal response from crescent pools, %w", err)
+	}
+
+	return sdkutilities.CrescentPools2{
+		CrescentPools: bz,
 	}, nil
 }
