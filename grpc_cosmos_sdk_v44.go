@@ -479,7 +479,7 @@ func crescentMintInflation(ctx context.Context, grpcConn *grpc.ClientConn) (sdku
 
 	for _, schedule := range mintParamsResp.GetParams().InflationSchedules {
 		if schedule.StartTime.Before(now) && schedule.EndTime.Before(now) {
-			totalMintedBeforeSchedule.Add(schedule.Amount)
+			totalMintedBeforeSchedule = totalMintedBeforeSchedule.Add(schedule.Amount)
 		} else if schedule.StartTime.Before(now) && schedule.EndTime.After(now) {
 			currentInflationAmount = schedule.Amount
 		}
